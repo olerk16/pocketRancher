@@ -3,6 +3,7 @@
 import StartMenuScene from './scenes/StartMenuScene.js';
 import GameScene from './scenes/GameScene.js';
 import MarketBazaarScene from './scenes/MarketBazaarScene.js';
+import PlayerSetupScene from './scenes/PlayerSetupScene.js';
 
 // Define the Phaser game configuration
 const config = {
@@ -16,7 +17,7 @@ const config = {
             gravity: { y: 0 }
         }
     },
-    scene: [StartMenuScene, GameScene, MarketBazaarScene] // Include all scenes
+    scene: [StartMenuScene, GameScene, MarketBazaarScene, PlayerSetupScene] // Include all scenes
 };
 
 // Create a new Phaser game with the configuration

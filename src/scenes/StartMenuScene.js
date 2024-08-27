@@ -14,11 +14,11 @@ class StartMenuScene extends Phaser.Scene {
 
     create() {
         // Add title text
-        this.add.text(400, 150, 'Monster Ranch Game', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5);
+        this.add.text(400, 150, 'Pocket Rancher', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5);
 
-        // Create RexUI button for starting the game using the utility function
+        // Create button for starting the game using the utility function
         createButton(this, 400, 300, 'Start Game', () => {
-            this.scene.start('GameScene'); // Switch to the game scene
+            this.scene.start('PlayerSetupScene'); // start new player setup scene
         });
     }
 }

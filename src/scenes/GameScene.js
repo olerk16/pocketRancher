@@ -1,7 +1,7 @@
 // src/scenes/GameScene.js
 
 import { createButton } from '../utils/uiUtils.js'; // Import the utility functions
-import Monster from '../models/Monster.js';  // Import the Monster class
+// import Monster from '../models/Monster.js';  // Import the Monster class
 
 
 class GameScene extends Phaser.Scene {
@@ -9,9 +9,20 @@ class GameScene extends Phaser.Scene {
         super({ key: 'GameScene' });
     }
 
+    init(data) {
+        // Receive data passed from the PlayerSetupScene
+        this.playerName = data.playerName;
+        this.ranchName = data.ranchName;
+        this.monster = data.selectedMonster; // Use the passed monster instance
+        this.monsterType = data.monsterType; // Use the passed monster type
+        console.log(`Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Selected Monster: `);
+    }
+
     preload() {
-        // // Load assets for the game scene
-        // this.load.image('monster', 'assets/images/monster.png');
+        console.log(this.monsterType)
+        // Load assets for the game scene
+        // Load monster sprite based on selected monster type
+        this.load.image('monsterSprite', `assets/images/${this.monsterType}.png`);
         // this.load.image('background', 'assets/images/background.png');
         // this.load.image('marketButton', 'assets/images/marketButton.png'); // Button to go to market
     }
@@ -20,15 +31,20 @@ class GameScene extends Phaser.Scene {
         // Add the background image to the game
         this.add.image(400, 300, 'background');
 
+        // Display player and ranch name
+        this.add.text(16, 16, `Player: ${this.playerName}`, { fontSize: '16px', fill: '#FFF' });
+        this.add.text(16, 36, `Ranch: ${this.ranchName}`, { fontSize: '16px', fill: '#FFF' });
+
+        // Display the selected monster in the game scene
+        this.monster.sprite = this.add.sprite(400, 300, 'monsterSprite');
+        this.monster.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+        
         // Player currency
         this.playerCoins = 100; // Start with 100 coins
         this.coinsText = this.add.text(16, 200, 'Coins: ' + this.playerCoins, { fontSize: '16px', fill: '#FFF' });
 
         // Player inventory
         this.inventory = [];
-
-        // Create monster object
-        this.monster = new Monster(this, 400, 300); // Pass scene, x, y coordinates
 
         // Display monster stats on the screen
         this.hungerText = this.add.text(16, 16, 'Hunger: ' + this.monster.hunger, { fontSize: '16px', fill: '#FFF' });
