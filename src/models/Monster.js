@@ -13,12 +13,19 @@ class Monster {
         this.training = 0;
         this.lifeSpan = 100;
 
+        // New properties
+        this.favoriteFood = 'apple'; // Example favorite food
+        this.statusEffects = []; // List of status effects like tired, happy, sick
+
         // Text objects will be initialized in GameScene and passed here
         this.hungerText = null;
         this.happinessText = null;
         this.energyText = null;
         this.trainingText = null;
         this.lifeSpanText = null;
+
+        // Start the life span timer
+        this.startLifeSpanTimer();
     }
 
     // Method to set text objects
@@ -36,18 +43,58 @@ class Monster {
         this.updateDisplay();
     }
 
-    feed() {
-        console.log("feeeed")
-        this.updateStat('hunger', -10);
-        this.updateStat('energy', 5);
-        this.update()
+    startLifeSpanTimer() {
+        // Decrease life span gradually over time
+        this.scene.time.addEvent({
+          delay: 1000, // Every 1 second
+          callback: this.decreaseLifeSpan,
+          callbackScope: this,
+          loop: true
+        });
+      }
+
+      decreaseLifeSpan() {
+        if (this.hunger > 80 || this.energy < 20) {
+          this.lifeSpan -= 0.2; // Decreases faster if the monster is in poor condition
+        } else {
+          this.lifeSpan -= 0.1; // Normal decrease over time
+        }
+    
+        // Check for monster's death
+        if (this.lifeSpan <= 0) {
+          this.lifeSpan = 0; // Prevent negative life span
+          this.handleDeath();
+        }
+    
+        this.updateDisplay(); // Update the display with the new life span
+      }
+    
+      handleDeath() {
+        alert('Your monster has died. Game Over.');
+        this.scene.scene.pause(); // Pause the game or handle the game-over scenario
+      }
+    
+
+    feed(food) {
+        // if (this.isActionOnCooldown('feed')) return;
+        console.log("feeeed");
+        let hungerEffect = -10;
+        let happinessEffect = 5;
+    
+        // Apply favorite food bonus
+        if (food === this.favoriteFood) {
+          happinessEffect += 5;
+          hungerEffect -= 5;
+        }
+
+        this.updateStat('hunger', hungerEffect);
+        this.updateStat('happiness', happinessEffect);
     }
 
     play() {
         this.updateStat('happiness', 15);
         this.updateStat('energy', -10);
-        this.update()
-    }
+      }
 
     train() {
         this.updateStat('training', 1);
@@ -59,25 +106,11 @@ class Monster {
     sleep() {
         this.updateStat('energy', 100 - this.energy); // Fully restore energy
         this.updateStat('happiness', 10);
-        this.update()
-    }
+
+      }
 
     updateStat(stat, value) {
         this[stat] = Math.min(100, Math.max(0, this[stat] + value)); // Clamp between 0 and 100
-    }
-
-    updateLifeSpan() {
-        // Decrease the life span based on current stats
-        if (this.hunger > 80 || this.energy < 20) {
-            this.lifeSpan -= 0.1; // Decreases faster if the monster is in poor condition
-        } else {
-            this.lifeSpan -= 0.05; // Normal decrease over time
-        }
-
-        if (this.lifeSpan <= 0) {
-            alert('Your monster has died. Game Over.');
-            this.scene.scene.pause();
-        }
     }
 
     updateDisplay() {
@@ -88,7 +121,7 @@ class Monster {
         if (this.trainingText) this.trainingText.setText('Training: ' + this.training);
         if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
     }
-
+// toDO make function effect more states then just happiness
     adjustHappinessByLocation(ranchLocation) {
         console.log("happpyyyyyyyyyyyyyyyyy")
         let happinessEffect = 0; // Default effect

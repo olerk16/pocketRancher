@@ -149,7 +149,14 @@ setBackgroundImage() {
       { text: 'Sleep', onClick: () => this.monster.sleep() },
       { text: 'Go to Market', onClick: () => this.goToMarket() },
       { text: 'Use Item', onClick: () => this.useItem() },
+      { text: 'View Map', onClick: () => this.viewMap() }, 
     ]);
+  }
+
+  viewMap() {
+    this.scene.start('MapScene', {
+      // Pass any data needed by the MapScene
+    });
   }
 
   setupMovement() {

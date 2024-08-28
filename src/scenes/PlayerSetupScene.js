@@ -199,7 +199,7 @@ class PlayerSetupScene extends Phaser.Scene {
         monsterType: this.selectedMonsterType, // Pass the monster type
         playerCoins: this.playerCoins,
         inventory: this.inventory,
-        ranchLocation: this.ranchLocation
+        ranchLocation: this.ranchLocation // pass ranch location
       });
     } else {
       alert("Please enter your name, ranch name, and select a monster.");
