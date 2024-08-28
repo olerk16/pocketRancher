@@ -71,7 +71,8 @@ class Monster {
     moveRandomly() {
         const randomVelocityX = Phaser.Math.Between(-100, 100); // Random X velocity
         const randomVelocityY = Phaser.Math.Between(-100, 100); // Random Y velocity
-        this.sprite.setVelocity(randomVelocityX, randomVelocityY);
+        // Error HERE!!!!!!!!!!!!!!!!!!!!!!!!
+        //this.sprite.setVelocity(randomVelocityX, randomVelocityY);
     }
 }
 
