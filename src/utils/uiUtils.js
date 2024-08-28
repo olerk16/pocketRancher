@@ -9,28 +9,24 @@
  * @param {string} text - The text to display on the button.
  * @param {Function} callback - The function to call when the button is clicked.
  */
-export function createButton(scene, x, y, text, callback) {
-    // Create a button element
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.className = 'btn btn-primary'; // Apply Bootstrap button classes
-    button.style.position = 'absolute';
-    button.style.left = `${x}px`;
-    button.style.top = `${y}px`;
-    button.style.transform = 'translate(-50%, -50%)'; // Center the button based on the position
-    button.style.fontSize = '20px';
-    button.style.padding = '10px 20px';
-    button.style.cursor = 'pointer';
+// src/utils/uiUtils.js
 
-    // Append the button to the body
-    document.body.appendChild(button);
+export function createButton(scene, x, y, label, onClick) {
+    const button = scene.add.text(x, y, label, { 
+        fontSize: '18px', 
+        color: '#ffffff', 
+        backgroundColor: '#2e8b57',
+        padding: { x: 10, y: 5 },
+        borderRadius: '5px' 
+    })
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => onClick());
 
-    // Add click event listener
-    button.addEventListener('click', callback);
-
-    // Remove the button when the scene shuts down to avoid memory leaks
-    scene.events.on('shutdown', () => {
-        button.remove();
+    button.setStyle({
+        backgroundColor: '#2e8b57',
+        border: 'none',
+        borderRadius: '5px',
+        color: '#ffffff'
     });
 
     return button;

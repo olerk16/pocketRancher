@@ -15,6 +15,7 @@ class PlayerSetupScene extends Phaser.Scene {
     this.inventory = [];
     this.selectedMonsterType = null;
     this.selectedMonsterInstance = null; // Store the created monster instance
+    this.ranchLocation = null // default location
   }
 
   preload() {
@@ -22,6 +23,11 @@ class PlayerSetupScene extends Phaser.Scene {
     this.load.image("monster1", "assets/images/monster1.png"); // Example monster sprites
     this.load.image("monster2", "assets/images/monster2.png");
     this.load.image("monster3", "assets/images/monster3.png");
+
+//       // Load background images for each location
+//   this.load.image("grassLandRanch", "assets/images/backGrounds/grassLandRanch.webp");
+//   this.load.image("desertRanch", "assets/images/backGrounds/desertRanch.webp");
+//   this.load.image("mountainRanch", "assets/images/backGrounds/mountainRanch.webp");
   }
 
   create() {
@@ -36,6 +42,7 @@ class PlayerSetupScene extends Phaser.Scene {
     // Create input fields and buttons using DOM elements
     this.createInputFields();
     this.createMonsterSelection();
+    this.createDropdownMenu()
   }
 
   createInputFields() {
@@ -74,6 +81,46 @@ class PlayerSetupScene extends Phaser.Scene {
     this.events.on("shutdown", () => {
       playerNameInput.remove();
       ranchNameInput.remove();
+    });
+  }
+
+  createDropdownMenu() {
+    // Create a dropdown (select element) for ranch location selection
+    const locationDropdown = document.createElement('select');
+    locationDropdown.style.position = 'absolute';
+    locationDropdown.style.top = '250px';
+    locationDropdown.style.left = '400px';
+    locationDropdown.style.transform = 'translate(-50%, -50%)';
+    locationDropdown.style.fontSize = '16px';
+
+     // Define ranch location options
+    const locations = [
+    { value: "grassLand", text: "Grassland" },
+    { value: "desert", text: "Desert" },
+    { value: "mountain", text: "Mountain" },
+  ];
+
+    // Populate the dropdown with options
+    locations.forEach((location) => {
+      const option = document.createElement('option');
+      option.value = location.value;
+      option.text = location.text;
+      locationDropdown.appendChild(option);
+    });
+
+    // Handle selection change
+    locationDropdown.addEventListener('change', (event) => {
+      this.ranchLocation = event.target.value;
+    //   this.updateBackgroundImage(); // Update the background image based on the selection
+      console.log(`Selected Ranch Location: ${this.ranchLocation}`);
+    });
+
+    // Append the dropdown to the body
+    document.body.appendChild(locationDropdown);
+
+    // Remove dropdown when the scene shuts down
+    this.events.on('shutdown', () => {
+      locationDropdown.remove();
     });
   }
 
@@ -142,7 +189,7 @@ class PlayerSetupScene extends Phaser.Scene {
   startGame() {
     if (this.playerName && this.ranchName && this.selectedMonsterInstance) {
       console.log(
-        `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}`
+        `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.ranchLocation}`
       );
       // Store these details in a global game object or pass them to the next scene
       this.scene.start("GameScene", {
@@ -152,6 +199,7 @@ class PlayerSetupScene extends Phaser.Scene {
         monsterType: this.selectedMonsterType, // Pass the monster type
         playerCoins: this.playerCoins,
         inventory: this.inventory,
+        ranchLocation: this.ranchLocation
       });
     } else {
       alert("Please enter your name, ranch name, and select a monster.");

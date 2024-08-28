@@ -1,17 +1,35 @@
 /* styles/style.css */
 
-body {
-    margin: 0;
-    padding: 0;
+body, html {
+    height: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #2c3e50;
-    color: white;
-    font-family: Arial, sans-serif;
+    justify-content: center;
+    background-color: #121212; /* Dark background for the page */
+    margin: 0;
+    overflow: hidden; /* Prevent scrollbars */
 }
 
-canvas {
-    border: 2px solid #fff;
+.game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    margin: auto;
+    background-color: #1e1e3f; /* Dark blue background */
+    border: 5px solid #2e8b57; /* Dark green border to match the theme */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+/* Style for the Bootstrap button to overlay on the Phaser canvas */
+.hamburger-menu {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000; /* Ensure it is above the game canvas */
+}
+
+.game-text {
+    font-family: 'Arial', sans-serif;
+    color: #ffffff; /* White text color */
+    text-shadow: 2px 2px 4px #000000; /* Text shadow for readability */
 }

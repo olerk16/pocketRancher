@@ -12,7 +12,23 @@ class Monster {
         this.energy = 50;
         this.training = 0;
         this.lifeSpan = 100;
+
+        // Text objects will be initialized in GameScene and passed here
+        this.hungerText = null;
+        this.happinessText = null;
+        this.energyText = null;
+        this.trainingText = null;
+        this.lifeSpanText = null;
     }
+
+    // Method to set text objects
+  setTextObjects(hungerText, happinessText, energyText, trainingText, lifeSpanText) {
+    this.hungerText = hungerText;
+    this.happinessText = happinessText;
+    this.energyText = energyText;
+    this.trainingText = trainingText;
+    this.lifeSpanText = lifeSpanText;
+  }
 
     update() {
         // Update monster properties over time or based on game events
@@ -21,24 +37,29 @@ class Monster {
     }
 
     feed() {
+        console.log("feeeed")
         this.updateStat('hunger', -10);
         this.updateStat('energy', 5);
+        this.update()
     }
 
     play() {
         this.updateStat('happiness', 15);
         this.updateStat('energy', -10);
+        this.update()
     }
 
     train() {
         this.updateStat('training', 1);
         this.updateStat('energy', -15);
         this.updateStat('happiness', -5);
+        this.update()
     }
 
     sleep() {
         this.updateStat('energy', 100 - this.energy); // Fully restore energy
         this.updateStat('happiness', 10);
+        this.update()
     }
 
     updateStat(stat, value) {
@@ -60,12 +81,12 @@ class Monster {
     }
 
     updateDisplay() {
-        // Update the display text with current monster stats
-        this.scene.hungerText.setText('Hunger: ' + this.hunger);
-        this.scene.happinessText.setText('Happiness: ' + this.happiness);
-        this.scene.energyText.setText('Energy: ' + this.energy);
-        this.scene.trainingText.setText('Training: ' + this.training);
-        this.scene.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
+        // Ensure the text objects are defined before attempting to update
+        if (this.hungerText) this.hungerText.setText('Hunger: ' + this.hunger);
+        if (this.happinessText) this.happinessText.setText('Happiness: ' + this.happiness);
+        if (this.energyText) this.energyText.setText('Energy: ' + this.energy);
+        if (this.trainingText) this.trainingText.setText('Training: ' + this.training);
+        if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
     }
 
     moveRandomly() {

@@ -15,9 +15,12 @@ class MarketBazaarScene extends Phaser.Scene {
     // // Load images for the market items
     this.load.image("potato", "assets/images/items/potato.webp"); // Example item
     this.load.image("steak", "assets/images/items/steak.webp"); // Example item
+    this.load.image("bazaar", "assets/images/backGrounds/bazaar.webp"); // background
   }
 
   create() {
+    // Add the background image to the game
+    this.add.image(400, 300, "bazaar");
     // creating items here
     const potato = new Item(
       "Potato",
