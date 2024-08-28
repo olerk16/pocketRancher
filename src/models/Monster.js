@@ -89,6 +89,23 @@ class Monster {
         if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
     }
 
+    adjustHappinessByLocation(ranchLocation) {
+        console.log("happpyyyyyyyyyyyyyyyyy")
+        let happinessEffect = 0; // Default effect
+    
+        // Define effects based on ranch location
+        if (ranchLocation === "grassland") {
+          happinessEffect = 10;  // Increase happiness in forest
+        } else if (ranchLocation === "desert") {
+          happinessEffect = -5;  // Decrease happiness in desert
+        } else if (ranchLocation === "mountain") {
+          happinessEffect = 5;   // Slight increase in mountain
+        }
+    
+        this.updateStat('happiness', happinessEffect);
+        this.updateDisplay();
+      }
+
     moveRandomly() {
         const randomVelocityX = Phaser.Math.Between(-100, 100); // Random X velocity
         const randomVelocityY = Phaser.Math.Between(-100, 100); // Random Y velocity

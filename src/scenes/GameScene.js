@@ -44,6 +44,10 @@ class GameScene extends Phaser.Scene {
     this.createDropdownMenu();
     this.setupMovement();
 
+    // Adjust monster's happiness based on the selected location
+    // toDo make function effect other stats besides just happiness
+    this.monster.adjustHappinessByLocation(this.ranchLocation);
+
     // Player currency
     this.coinsText = this.add.text(16, 200, "Coins: " + this.playerCoins, {
       fontSize: "16px",
