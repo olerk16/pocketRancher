@@ -1,6 +1,6 @@
 // src/scenes/GameScene.js
 
-import { createButton } from "../utils/uiUtils.js"; // Import the utility functions
+import { createButton, createImageButton } from "../utils/uiUtils.js"; // Import the utility functions
 import DropdownMenu from "../components/dropDownMenu.js"; // Import the DropdownMenu component
 import Monster from "../models/Monster.js";
 
@@ -55,6 +55,7 @@ class GameScene extends Phaser.Scene {
     this.setupTextObjects();
     this.createDropdownMenu();
     this.setupMovement();
+    this.createInventoryWindow();
 
     // Adjust monster's happiness based on the selected location
     // toDo make function effect other stats besides just happiness
@@ -74,8 +75,27 @@ class GameScene extends Phaser.Scene {
       this.lifeSpanText,
       this.hygieneText
     );
+    this.inventoryWindow.setVisible(false);
   }
+  createInventoryWindow(){
+   // Calculate the bottom-left position
+  const windowHeight = this.scale.height;
+  //const windowWidth = this.scale.width;
 
+  // Set the inventory window to be bottom-left
+  this.inventoryWindow = this.add.container(50, windowHeight - 100); // Adjust the x, y position as needed
+    this.inventorySlot = [];
+    for(let i = 0; i < this.inventory.length; i++){
+      const slot = createImageButton(this, 30 + i * 55, 50, this.inventory[i].name, ()=>this.feed(),50,50);
+      
+      this.inventoryWindow.add(slot);
+    }
+
+  }
+  toggleInventory(){
+    const isVisible = this.createInventoryWindow.visible;
+    this.inventoryWindow.setVisible(!isVisible);
+  }
   setBackgroundImage() {
     // Create a mapping object that associates each location with its corresponding background image key
     const backgroundImages = {
@@ -152,7 +172,7 @@ class GameScene extends Phaser.Scene {
   createDropdownMenu() {
     // Create dropdown menu with game actions
     this.dropdownMenu = new DropdownMenu(this, [
-      { text: "Feed", onClick: () => this.monster.feed() },
+      { text: "Feed", onClick: () => this.toggleInventory() },
       { text: "Play", onClick: () => this.monster.play() },
       { text: "Sleep", onClick: () => this.monster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
@@ -202,6 +222,7 @@ class GameScene extends Phaser.Scene {
     this.dropdownMenu.removeMenu(); // Clean up when the scene shuts down
   }
 
+  }
   // Method to use an item from inventory
   useItem() {
     if (this.inventory.length > 0) {

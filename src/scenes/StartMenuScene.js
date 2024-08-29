@@ -11,7 +11,6 @@ class StartMenuScene extends Phaser.Scene {
     // Load any assets needed for the start menu here
     // this.load.image('startButtonBg', 'assets/images/startButton.png'); // Optional: background image for the button
     this.setImages();
-
     this.setRegistry();
   }
 
