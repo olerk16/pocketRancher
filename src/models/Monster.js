@@ -2,21 +2,22 @@
 // src/models/Monster.js
 
 class Monster {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, name = 'unnamed monster') {
       this.scene = scene;
       this.sprite = scene.add.image(x, y, 'monster');
     //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+      this.name = name
   
       // Initialize monster properties
       this.hunger = 50;
       this.happiness = 50;
       this.energy = 50;
-      this.lifeSpan = 100;
+      this.lifeSpan = 5;
       this.hygiene = 50;
 
       // Store the current movement direction and speed
-    this.movementSpeed = 50; // Pixels per second
-    this.direction = { x: 1, y: 1 }; // Start moving diagonally
+      this.movementSpeed = 50; // Pixels per second
+      this.direction = { x: 1, y: 1 }; // Start moving diagonally
   
       // Define thresholds and decay rates
       this.DECAY_RATE = 5; // Rate at which needs decay
@@ -38,65 +39,20 @@ class Monster {
       this.energyText = null;
       this.lifeSpanText = null;
       this.hygieneText = null;
-  
-      // Start the life span timer
-      this.setupTimers();
-    //   this.startLifeSpanTimer();
-  
-      // Timer to decay needs
-    //   this.scene.time.addEvent({
-    //     delay: 5000, // Every 5 seconds
-    //     callback: this.decayNeeds,
-    //     callbackScope: this,
-    //     loop: true
-    //   });
-
-      // Set up initial movement timer
-    // this.scene.time.addEvent({
-    //     delay: 2000, // Every 2 seconds
-    //     callback: this.moveRandomly,
-    //     callbackScope: this,
-    //     loop: true,
-    //   });
-  
+      
       // Bind methods
       this.updateMood = this.updateMood.bind(this);
       this.decayNeeds = this.decayNeeds.bind(this);
       this.decreaseLifeSpan = this.decreaseLifeSpan.bind(this);
-
+      
       // Bind methods
-    this.moveRandomly = this.moveRandomly.bind(this);
-    this.updatePosition = this.updatePosition.bind(this);
-
+      this.moveRandomly = this.moveRandomly.bind(this);
+      this.updatePosition = this.updatePosition.bind(this);
+      
       // Start the timers
-    //   this.startDecayTimer()
+      this.setupTimers();
+      
     }
-
-    // Initialize decay timer
-//   startDecayTimer() {
-//     console.log('Initializing decay timer...');
-
-//     // Make sure the scene is valid and active
-//     if (!this.scene) {
-//       console.error('Scene is not defined or not active.');
-//       return;
-//     }
-
-//     // Ensure the scene's time object is accessible
-//     if (!this.scene.time) {
-//       console.error('Scene time is not initialized.');
-//       return;
-//     }
-
-    // Register the timer event
-    // this.scene.time.addEvent({
-    //   delay: 5000, // Every 5 seconds
-    //   callback: this.decayNeeds,
-    //   callbackScope: this,
-    //   loop: true
-    // });
-
-  
 
   setupTimers() {
     // Decay needs over time
@@ -123,7 +79,6 @@ class Monster {
   
     // Method to decay needs over time
     decayNeeds() {
-        console.log("decay needs")
       this.updateStat('hunger', -this.DECAY_RATE);
       this.updateStat('thirst', -this.DECAY_RATE);
       this.updateStat('energy', -this.DECAY_RATE);
@@ -164,20 +119,7 @@ class Monster {
       this.updateDisplay();
     }
   
-    // startLifeSpanTimer() {
-    //     console.log("start kife timer")
-    //   // Decrease life span gradually over time
-    //   this.scene.time.addEvent({
-    //     delay: 1000, // Every 1 second
-    //     callback: this.decreaseLifeSpan,
-    //     callbackScope: this,
-    //     loop: true
-    //   });
-    //   console.log('Decay timer initialized.');
-    // }
-  
     decreaseLifeSpan() {
-        console.log('Decreasing life span...');
         const decayAmount = (this.hunger > 80 || this.energy < 20) ? 0.2 : 0.1;
         this.lifeSpan = Math.max(0, this.lifeSpan - decayAmount);
     
@@ -189,8 +131,19 @@ class Monster {
       }
   
     handleDeath() {
-      alert('Your monster has died. Game Over.');
-      this.scene.scene.pause(); // Pause the game or handle the game-over scenario
+        alert(`${this.name} has died. Game Over.`);
+    
+        // Save the monster's name to the deceased list
+        if (!this.scene.deceasedMonsters) {
+          this.scene.deceasedMonsters = [];
+        }
+        this.scene.deceasedMonsters.push(this.name);
+    
+        // Pause the game or handle the game-over scenario
+        this.scene.scene.pause();
+        this.scene.scene.start("MonsterCemeteryScene", {
+          deceasedMonsters: this.scene.deceasedMonsters
+        });
     }
   
     feed(food) {

@@ -16,6 +16,7 @@ class PlayerSetupScene extends Phaser.Scene {
     this.selectedMonsterType = null;
     this.selectedMonsterInstance = null; // Store the created monster instance
     this.ranchLocation = null // default location
+    this.monsterName = "";
   }
 
   preload() {
@@ -160,21 +161,36 @@ class PlayerSetupScene extends Phaser.Scene {
     this.clearMonsterSelection(); // Clear previous selections
     monsterImage.setTint(0x00ff00); // Highlight the selected monster
 
-    // Create the selected monster instance
-    // switch (this.selectedMonsterType) {
-    //   case "monster1":
-    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
-    //     break;
-    //   case "monster2":
-    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
-    //     break;
-    //   case "monster3":
-    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
-    //     break;
-    //   default:
-    //     this.selectedMonsterInstance = null;
-    //     break;
-    // }
+    // Create input field for monster name after selecting a monster
+    this.createMonsterNameInput();
+  }
+
+  createMonsterNameInput() {
+    // Remove any existing monster name input field
+    if (this.monsterNameInput) {
+      this.monsterNameInput.remove();
+    }
+
+    // Create input field for monster name
+    this.monsterNameInput = document.createElement("input");
+    this.monsterNameInput.type = "text";
+    this.monsterNameInput.placeholder = "Enter your monster's name";
+    this.monsterNameInput.style.position = "absolute";
+    this.monsterNameInput.style.top = "400px";
+    this.monsterNameInput.style.left = "400px";
+    this.monsterNameInput.style.transform = "translate(-50%, -50%)";
+    this.monsterNameInput.style.fontSize = "16px";
+    document.body.appendChild(this.monsterNameInput);
+
+    // Update monster name on input change
+    this.monsterNameInput.addEventListener("input", (event) => {
+      this.monsterName = event.target.value;
+    });
+
+    // Remove input field when the scene shuts down
+    this.events.on("shutdown", () => {
+      this.monsterNameInput.remove();
+    });
   }
 
   clearMonsterSelection() {
@@ -187,7 +203,7 @@ class PlayerSetupScene extends Phaser.Scene {
   }
 
   startGame() {
-    if (this.playerName && this.ranchName && this.selectedMonsterType) {
+    if (this.playerName && this.ranchName && this.selectedMonsterType && this.monsterName) {
       console.log(
         `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.ranchLocation}`
       );
@@ -197,6 +213,7 @@ class PlayerSetupScene extends Phaser.Scene {
         ranchName: this.ranchName,
         selectedMonster: this.selectedMonsterInstance, // Pass the monster instance
         monsterType: this.selectedMonsterType, // Pass the monster type
+        monsterName: this.monsterName,
         playerCoins: this.playerCoins,
         inventory: this.inventory,
         ranchLocation: this.ranchLocation // pass ranch location

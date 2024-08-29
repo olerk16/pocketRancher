@@ -4,8 +4,6 @@ import { createButton, createImageButton } from "../utils/uiUtils.js"; // Import
 import DropdownMenu from "../components/dropDownMenu.js"; // Import the DropdownMenu component
 import Monster from "../models/Monster.js";
 
-// import Monster from '../models/Monster.js';  // Import the Monster class
-
 class GameScene extends Phaser.Scene {
   constructor() {
     super({ key: "GameScene" });
@@ -19,12 +17,10 @@ class GameScene extends Phaser.Scene {
     this.playerCoins = data.playerCoins;
     this.inventory = data.inventory;
     this.ranchLocation = data.ranchLocation;
-    console.log(
-      `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Selected Monster: `
-    );
+    this.monsterName = data.monsterName
 
     // Initialize Monster in GameScene
-    this.monster = new Monster(this, 400, 300, this.monsterType);
+    this.monster = new Monster(this, 400, 300, this.monsterName);
   }
 
   preload() {
@@ -124,10 +120,7 @@ class GameScene extends Phaser.Scene {
 
   addMonsterToScene() {
     this.monster.sprite = this.add.image(400, 300, this.monsterType);
-    this.monster.sprite.setScale(0.5); // Adjust scale if necessary
-
-    // Start decay timer in the GameScene
-    // this.monster.startDecayTimer();
+    this.monster.sprite.setScale(0.5);
   }
 
   setupTextObjects() {
@@ -178,7 +171,14 @@ class GameScene extends Phaser.Scene {
       { text: "Go to Market", onClick: () => this.goToMarket() },
       { text: "Use Item", onClick: () => this.useItem() },
       { text: "View Map", onClick: () => this.viewMap() },
+      { text: "Cemetery", onClick: () => this.viewCemetery() },
     ]);
+  }
+
+  viewCemetery() {
+    this.scene.start("MonsterCemeteryScene", {
+      deceasedMonsters: this.deceasedMonsters,
+    });
   }
 
   viewMap() {

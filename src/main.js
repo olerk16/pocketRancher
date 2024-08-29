@@ -5,6 +5,7 @@ import GameScene from "./scenes/GameScene.js";
 import MarketBazaarScene from "./scenes/MarketBazaarScene.js";
 import PlayerSetupScene from "./scenes/PlayerSetupScene.js";
 import MapScene from "./scenes/MapScene.js";
+import MonsterCemeteryScene from "./scenes/MonsterCemeteryScene.js";
 
 import gameState from "./store/gameState.js";
 
@@ -20,6 +21,7 @@ const config = {
     MarketBazaarScene,
     PlayerSetupScene,
     MapScene,
+    MonsterCemeteryScene
   ], // Include all scenes
   physics: {
     default: "arcade",
