@@ -12,22 +12,36 @@
 // src/utils/uiUtils.js
 
 export function createButton(scene, x, y, label, onClick) {
-    const button = scene.add.text(x, y, label, { 
-        fontSize: '18px', 
-        color: '#ffffff', 
-        backgroundColor: '#2e8b57',
-        padding: { x: 10, y: 5 },
-        borderRadius: '5px' 
+  const button = scene.add
+    .text(x, y, label, {
+      fontSize: "18px",
+      color: "#ffffff",
+      backgroundColor: "#2e8b57",
+      padding: { x: 10, y: 5 },
+      borderRadius: "5px",
     })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => onClick());
+
+  button.setStyle({
+    backgroundColor: "#2e8b57",
+    border: "none",
+    borderRadius: "5px",
+    color: "#ffffff",
+  });
+
+  return button;
+}
+export function createImageButton(scene, x, y, imageKey, onClick, width = null, height = null) {
+  // Create the image button
+  const button = scene.add.image(x, y, imageKey)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => onClick());
 
-    button.setStyle({
-        backgroundColor: '#2e8b57',
-        border: 'none',
-        borderRadius: '5px',
-        color: '#ffffff'
-    });
+  // If width and height are provided, resize the button
+  if (width !== null && height !== null) {
+    button.setDisplaySize(width, height);
+  }
 
-    return button;
+  return button;
 }

@@ -1,21 +1,24 @@
 // src/scenes/MarketBazaarScene.js
 
-import { createButton } from "../utils/uiUtils.js";
+import { createButton, createImageButton } from "../utils/uiUtils.js";
 import Item from "../models/Item.js";
 
 class MarketBazaarScene extends Phaser.Scene {
   constructor() {
     super({ key: "MarketBazaarScene" });
   }
- init(data){
+  init(data) {
+    this.playerName = data.playerName;
+    this.ranchName = data.ranchName;
+    this.monster = data.selectedMonster; // Use the passed monster instance
+    this.monsterType = data.monsterType; // Use the passed monster type
     this.playerCoins = data.playerCoins;
     this.inventory = data.inventory;
- }
+    this.ranchLocation = data.ranchLocation;
+  }
   preload() {
     // // Load images for the market items
-    this.load.image("potato", "assets/images/items/potato.webp"); // Example item
-    this.load.image("steak", "assets/images/items/steak.webp"); // Example item
-    this.load.image("bazaar", "assets/images/backGrounds/bazaar.webp"); // background
+     // background
   }
 
   create() {
@@ -51,15 +54,13 @@ class MarketBazaarScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Display player's current coins
-    this.coinsText = this.add.text(
-      16,
-      16,
-      "Coins: " + this.playerCoins,
-      { fontSize: "16px", fill: "#FFF" }
-    );
+    this.coinsText = this.add.text(16, 16, "Coins: " + this.playerCoins, {
+      fontSize: "16px",
+      fill: "#FFF",
+    });
 
-    let hGap = 400;
-    let vGap = 400;
+    let hGap = 100;
+    let vGap = 100;
     for (let i = 0; i < items.length; i++) {
       createButton(
         this,
@@ -71,14 +72,22 @@ class MarketBazaarScene extends Phaser.Scene {
 
       hGap += 250;
     }
+    createImageButton(this, 100, 250, "potato", () => this.buyItem(items[0]),100, 100);
     // Use createButton utility function to create a back button
     createButton(this, 700, 50, "Back", () => {
-      this.scene.start("GameScene"); // Switch back to the game scene
+      this.scene.start("GameScene", {
+        inventory: this.inventory,
+        playerCoins: this.playerCoins,
+        playerName: this.playerName,
+        ranchName: this.ranchName,
+        selectedMonster: this.monster, // Pass the monster if needed
+        monsterType: this.monsterType,
+        ranchLocation: this.ranchLocation,
+      }); // Switch back to the game scene
     });
   }
 
   buyItem(item) {
-
     // Clear previous text notification if it exists
     if (this.notificationText) {
       this.notificationText.destroy();
