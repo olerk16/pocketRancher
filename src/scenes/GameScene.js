@@ -2,6 +2,7 @@
 
 import { createButton } from "../utils/uiUtils.js"; // Import the utility functions
 import DropdownMenu from "../components/dropDownMenu.js"; // Import the DropdownMenu component
+import Monster from "../models/Monster.js";
 
 // import Monster from '../models/Monster.js';  // Import the Monster class
 
@@ -14,7 +15,6 @@ class GameScene extends Phaser.Scene {
     // Receive data passed from the PlayerSetupScene
     this.playerName = data.playerName;
     this.ranchName = data.ranchName;
-    this.monster = data.selectedMonster; // Use the passed monster instance
     this.monsterType = data.monsterType; // Use the passed monster type
     this.playerCoins = data.playerCoins;
     this.inventory = data.inventory;
@@ -22,10 +22,12 @@ class GameScene extends Phaser.Scene {
     console.log(
       `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Selected Monster: `
     );
+
+    // Initialize Monster in GameScene
+    this.monster = new Monster(this, 400, 300, this.monsterType);
   }
 
   preload() {
-    console.log(this.monsterType);
     // Load assets for the game scene
     // Load monster sprite based on selected monster type
     this.load.image("monsterSprite", `assets/images/${this.monsterType}.png`);
@@ -48,9 +50,8 @@ class GameScene extends Phaser.Scene {
 
   create() {
     this.setBackgroundImage();
-    console.log("locationssssss", this.ranchLocation);
     this.addPlayerInfo();
-    this.addMonster();
+    this.addMonsterToScene();
     this.setupTextObjects();
     this.createDropdownMenu();
     this.setupMovement();
@@ -70,32 +71,27 @@ class GameScene extends Phaser.Scene {
       this.hungerText,
       this.happinessText,
       this.energyText,
-      this.trainingText,
       this.lifeSpanText,
-      this.hygeneText
+      this.hygieneText
     );
   }
 
   setBackgroundImage() {
-    // Set background image based on selected location
-    // Determine which background image to show based on the selected location
-    switch (this.ranchLocation) {
-      case "grassLand":
-        this.currentBackground = this.add.image(400, 300, "grassLandRanch");
-        break;
-      case "desert":
-        this.currentBackground = this.add.image(400, 300, "desertRanch");
-        break;
-      case "mountain":
-        this.currentBackground = this.add.image(400, 300, "mountainRanch");
-        break;
-      default:
-        break;
+    // Create a mapping object that associates each location with its corresponding background image key
+    const backgroundImages = {
+      grassLand: "grassLandRanch",
+      desert: "desertRanch",
+      mountain: "mountainRanch",
+    };
+    // Get the background image key based on the selected ranch location
+    const backgroundImageKey = backgroundImages[this.ranchLocation];
+    // Only add the image if a valid background image key is found
+    if (backgroundImageKey) {
+      this.currentBackground = this.add.image(400, 300, backgroundImageKey);
     }
   }
 
   addPlayerInfo() {
-    // Display player and ranch information
     this.add.text(16, 16, `Player: ${this.playerName}`, {
       fontSize: "16px",
       fill: "#FFF",
@@ -106,10 +102,12 @@ class GameScene extends Phaser.Scene {
     });
   }
 
-  addMonster() {
-    // Display the selected monster in the game scene
-    this.monster.sprite = this.add.sprite(500, 450, "monsterSprite");
-    this.monster.sprite.setScale(0.6); // Scale down the monster sprite
+  addMonsterToScene() {
+    this.monster.sprite = this.add.image(400, 300, this.monsterType);
+    this.monster.sprite.setScale(0.5); // Adjust scale if necessary
+
+    // Start decay timer in the GameScene
+    // this.monster.startDecayTimer();
   }
 
   setupTextObjects() {
@@ -118,10 +116,6 @@ class GameScene extends Phaser.Scene {
       fontSize: "16px",
       fill: "#FFF",
     });
-    this.hygeneText = this.add.text(16, 56, "Hygene: " + this.monster.hygene, {
-        fontSize: "16px",
-        fill: "#FFF",
-      });
     this.happinessText = this.add.text(
       16,
       76,
@@ -132,10 +126,10 @@ class GameScene extends Phaser.Scene {
       fontSize: "16px",
       fill: "#FFF",
     });
-    this.trainingText = this.add.text(
+    this.hygieneTextText = this.add.text(
       16,
       116,
-      "Training: " + this.monster.training,
+      "Hygiene: " + this.monster.hygiene,
       { fontSize: "16px", fill: "#FFF" }
     );
     this.lifeSpanText = this.add.text(
@@ -150,9 +144,8 @@ class GameScene extends Phaser.Scene {
       this.hungerText,
       this.happinessText,
       this.energyText,
-      this.trainingText,
       this.lifeSpanText,
-      this.hygeneText
+      this.hygieneText
     );
   }
 
@@ -161,7 +154,6 @@ class GameScene extends Phaser.Scene {
     this.dropdownMenu = new DropdownMenu(this, [
       { text: "Feed", onClick: () => this.monster.feed() },
       { text: "Play", onClick: () => this.monster.play() },
-      { text: "Train", onClick: () => this.monster.train() },
       { text: "Sleep", onClick: () => this.monster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
       { text: "Use Item", onClick: () => this.useItem() },
@@ -176,17 +168,21 @@ class GameScene extends Phaser.Scene {
   }
 
   setupMovement() {
-    // Set up random movement timer
+    // Timer to change direction every 2 seconds
     this.time.addEvent({
-      delay: 2000, // Every 2 seconds
-      callback: () => this.monster.moveRandomly(),
-      callbackScope: this,
+      delay: 2000,
+      callback: this.monster.moveRandomly,
+      callbackScope: this.monster,
       loop: true,
     });
-
-    // Set up keyboard input for movement
-    this.cursors = this.input.keyboard.createCursorKeys();
   }
+
+  update(time, delta) {
+    // Call updatePosition to move the monster each frame
+    this.monster.updatePosition(delta);
+    this.monster.updateDisplay(); // Refresh the display of monster properties
+  }
+
 
   goToMarket() {
      // Switch to the market scene
@@ -204,10 +200,6 @@ class GameScene extends Phaser.Scene {
   // Phaser method that is called when the scene is stopped
   shutdown() {
     this.dropdownMenu.removeMenu(); // Clean up when the scene shuts down
-  }
-  update() {
-    // Update the game state and refresh the display of monster properties
-    this.monster.updateDisplay();
   }
 
   // Method to use an item from inventory

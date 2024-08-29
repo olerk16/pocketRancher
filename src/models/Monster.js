@@ -4,23 +4,28 @@
 class Monster {
     constructor(scene, x, y) {
       this.scene = scene;
-      this.sprite = scene.physics.add.sprite(x, y, 'monster');
-      this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+      this.sprite = scene.add.image(x, y, 'monster');
+    //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
   
       // Initialize monster properties
       this.hunger = 50;
-      this.thirst = 50;
       this.happiness = 50;
       this.energy = 50;
       this.lifeSpan = 100;
       this.hygiene = 50;
+
+      // Store the current movement direction and speed
+    this.movementSpeed = 50; // Pixels per second
+    this.direction = { x: 1, y: 1 }; // Start moving diagonally
   
       // Define thresholds and decay rates
       this.DECAY_RATE = 5; // Rate at which needs decay
-      this.HUNGER_THRESHOLD = 20;
-      this.HAPPINESS_THRESHOLD = 30;
-      this.ENERGY_THRESHOLD = 30;
-      this.HYGIENE_THRESHOLD = 30;
+      this.THRESHOLDS = {
+        hunger: 20,
+        happiness: 30,
+        energy: 30,
+        hygiene: 30,
+      };
   
       // New properties
       this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
@@ -31,29 +36,94 @@ class Monster {
       this.hungerText = null;
       this.happinessText = null;
       this.energyText = null;
-      this.trainingText = null;
       this.lifeSpanText = null;
       this.hygieneText = null;
   
       // Start the life span timer
-      this.startLifeSpanTimer();
+      this.setupTimers();
+    //   this.startLifeSpanTimer();
   
       // Timer to decay needs
-      this.scene.time.addEvent({
-        delay: 5000, // Every 5 seconds
-        callback: this.decayNeeds,
-        callbackScope: this,
-        loop: true
-      });
+    //   this.scene.time.addEvent({
+    //     delay: 5000, // Every 5 seconds
+    //     callback: this.decayNeeds,
+    //     callbackScope: this,
+    //     loop: true
+    //   });
+
+      // Set up initial movement timer
+    // this.scene.time.addEvent({
+    //     delay: 2000, // Every 2 seconds
+    //     callback: this.moveRandomly,
+    //     callbackScope: this,
+    //     loop: true,
+    //   });
   
       // Bind methods
       this.updateMood = this.updateMood.bind(this);
       this.decayNeeds = this.decayNeeds.bind(this);
       this.decreaseLifeSpan = this.decreaseLifeSpan.bind(this);
+
+      // Bind methods
+    this.moveRandomly = this.moveRandomly.bind(this);
+    this.updatePosition = this.updatePosition.bind(this);
+
+      // Start the timers
+    //   this.startDecayTimer()
     }
+
+    // Initialize decay timer
+//   startDecayTimer() {
+//     console.log('Initializing decay timer...');
+
+//     // Make sure the scene is valid and active
+//     if (!this.scene) {
+//       console.error('Scene is not defined or not active.');
+//       return;
+//     }
+
+//     // Ensure the scene's time object is accessible
+//     if (!this.scene.time) {
+//       console.error('Scene time is not initialized.');
+//       return;
+//     }
+
+    // Register the timer event
+    // this.scene.time.addEvent({
+    //   delay: 5000, // Every 5 seconds
+    //   callback: this.decayNeeds,
+    //   callbackScope: this,
+    //   loop: true
+    // });
+
+  
+
+  setupTimers() {
+    // Decay needs over time
+    this.scene.time.addEvent({
+      delay: 5000, // Every 5 seconds
+      callback: () => this.decayNeeds(),
+      loop: true,
+    });
+
+    // Change movement randomly
+    this.scene.time.addEvent({
+      delay: 2000, // Every 2 seconds
+      callback: () => this.moveRandomly(),
+      loop: true,
+    });
+
+    // Decrease lifespan
+    this.scene.time.addEvent({
+      delay: 1000, // Every 1 second
+      callback: () => this.decreaseLifeSpan(),
+      loop: true,
+    });
+}
   
     // Method to decay needs over time
     decayNeeds() {
+        console.log("decay needs")
       this.updateStat('hunger', -this.DECAY_RATE);
       this.updateStat('thirst', -this.DECAY_RATE);
       this.updateStat('energy', -this.DECAY_RATE);
@@ -65,27 +135,26 @@ class Monster {
   
     // Method to update mood based on current needs
     updateMood() {
-      if (this.hunger < this.HUNGER_THRESHOLD || this.thirst < this.HUNGER_THRESHOLD) {
-        this.mood = 'hungry';
-      } else if (this.happiness < this.HAPPINESS_THRESHOLD) {
-        this.mood = 'sad';
-      } else if (this.energy < this.ENERGY_THRESHOLD) {
-        this.mood = 'tired';
-      } else if (this.hygiene < this.HYGIENE_THRESHOLD) {
-        this.mood = 'dirty';
-      } else {
-        this.mood = 'happy';
+        if (this.hunger < this.THRESHOLDS.hunger || this.energy < this.THRESHOLDS.energy) {
+          this.mood = 'hungry';
+        } else if (this.happiness < this.THRESHOLDS.happiness) {
+          this.mood = 'sad';
+        } else if (this.energy < this.THRESHOLDS.energy) {
+          this.mood = 'tired';
+        } else if (this.hygiene < this.THRESHOLDS.hygiene) {
+          this.mood = 'dirty';
+        } else {
+          this.mood = 'happy';
+        }
+    
+        console.log(`Monster mood: ${this.mood}`);
       }
   
-      console.log(`Monster mood: ${this.mood}`);
-    }
-  
     // Method to set text objects
-    setTextObjects(hungerText, happinessText, energyText, trainingText, lifeSpanText, hygieneText) {
+    setTextObjects(hungerText, happinessText, energyText, lifeSpanText, hygieneText) {
       this.hungerText = hungerText;
       this.happinessText = happinessText;
       this.energyText = energyText;
-      this.trainingText = trainingText;
       this.lifeSpanText = lifeSpanText;
       this.hygieneText = hygieneText;
     }
@@ -95,30 +164,29 @@ class Monster {
       this.updateDisplay();
     }
   
-    startLifeSpanTimer() {
-      // Decrease life span gradually over time
-      this.scene.time.addEvent({
-        delay: 1000, // Every 1 second
-        callback: this.decreaseLifeSpan,
-        callbackScope: this,
-        loop: true
-      });
-    }
+    // startLifeSpanTimer() {
+    //     console.log("start kife timer")
+    //   // Decrease life span gradually over time
+    //   this.scene.time.addEvent({
+    //     delay: 1000, // Every 1 second
+    //     callback: this.decreaseLifeSpan,
+    //     callbackScope: this,
+    //     loop: true
+    //   });
+    //   console.log('Decay timer initialized.');
+    // }
   
     decreaseLifeSpan() {
-      if (this.hunger > 80 || this.energy < 20) {
-        this.lifeSpan -= 0.2; // Decreases faster if the monster is in poor condition
-      } else {
-        this.lifeSpan -= 0.1; // Normal decrease over time
+        console.log('Decreasing life span...');
+        const decayAmount = (this.hunger > 80 || this.energy < 20) ? 0.2 : 0.1;
+        this.lifeSpan = Math.max(0, this.lifeSpan - decayAmount);
+    
+        if (this.lifeSpan <= 0) {
+          this.handleDeath();
+        }
+    
+        this.updateDisplay();
       }
-  
-      if (this.lifeSpan <= 0) {
-        this.lifeSpan = 0; // Prevent negative life span
-        this.handleDeath();
-      }
-  
-      this.updateDisplay(); // Update the display with the new life span
-    }
   
     handleDeath() {
       alert('Your monster has died. Game Over.');
@@ -151,15 +219,6 @@ class Monster {
       this.updateDisplay();
     }
   
-    train() {
-      if (this.mood === 'tired' || this.mood === 'dead') return; // Prevent actions if monster is tired or dead
-      this.updateStat('training', 1);
-      this.updateStat('energy', -15);
-      this.updateStat('happiness', -5);
-      this.updateMood(); // Update mood after training
-      this.updateDisplay();
-    }
-  
     sleep() {
       if (this.mood === 'dead') return; // Prevent actions if monster is dead
       this.updateStat('energy', 100 - this.energy); // Fully restore energy
@@ -183,32 +242,43 @@ class Monster {
     }
   
     adjustHappinessByLocation(ranchLocation) {
-      console.log("Adjusting happiness based on location");
-      let happinessEffect = 0;
-  
-      switch (ranchLocation) {
-        case "grassland":
-          happinessEffect = 10; // Increase happiness in grassland
-          break;
-        case "desert":
-          happinessEffect = -5; // Decrease happiness in desert
-          break;
-        case "mountain":
-          happinessEffect = 5; // Slight increase in mountain
-          break;
-        default:
-          happinessEffect = 0; // No change for undefined locations
-      }
-  
-      this.updateStat('happiness', happinessEffect);
-      this.updateDisplay();
-    }
+        console.log("Adjusting happiness based on location");
+        const locationEffects = {
+          grassland: 10,
+          desert: -5,
+          mountain: 5,
+        };
     
-    moveRandomly() {
-        const randomVelocityX = Phaser.Math.Between(-100, 100); // Random X velocity
-        const randomVelocityY = Phaser.Math.Between(-100, 100); // Random Y velocity
-        // this.sprite.setVelocity(randomVelocityX, randomVelocityY);
+        const happinessEffect = locationEffects[ranchLocation] || 0;
+        this.updateStat('happiness', happinessEffect);
+        this.updateDisplay();
       }
+    
+
+    // Method to move randomly
+    moveRandomly() {
+        console.log("Monster moving randomly...");
+        this.direction.x = Phaser.Math.Between(-1, 1) || 1; // Ensure it's never zero
+        this.direction.y = Phaser.Math.Between(-1, 1) || 1; // Ensure it's never zero
+      }
+
+    // Method to update position
+  updatePosition(delta) {
+    if (!this.sprite) return;
+
+    // Calculate new position based on speed and direction
+    this.sprite.x += this.direction.x * this.movementSpeed * (delta / 1000);
+    this.sprite.y += this.direction.y * this.movementSpeed * (delta / 1000);
+
+    // Check bounds and reverse direction if needed
+    if (this.sprite.x <= 0 || this.sprite.x >= this.scene.sys.canvas.width) {
+      this.direction.x *= -1;
     }
+
+    if (this.sprite.y <= 0 || this.sprite.y >= this.scene.sys.canvas.height) {
+      this.direction.y *= -1;
+    }
+  }
+}
     
     export default Monster;
