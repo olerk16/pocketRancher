@@ -71,7 +71,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.trainingText,
-      this.lifeSpanText
+      this.lifeSpanText,
+      this.hygeneText
     );
   }
 
@@ -117,6 +118,10 @@ class GameScene extends Phaser.Scene {
       fontSize: "16px",
       fill: "#FFF",
     });
+    this.hygeneText = this.add.text(16, 56, "Hygene: " + this.monster.hygene, {
+        fontSize: "16px",
+        fill: "#FFF",
+      });
     this.happinessText = this.add.text(
       16,
       76,
@@ -146,7 +151,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.trainingText,
-      this.lifeSpanText
+      this.lifeSpanText,
+      this.hygeneText
     );
   }
 
