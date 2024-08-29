@@ -34,24 +34,8 @@ To set up the game locally, follow these steps:
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/yourusername/pocket-rancher.git
-Navigate to the Project Directory:
 
-bash
-Copy code
-cd pocket-rancher
-Install Dependencies: Ensure you have Node.js and npm installed. Then, run:
-
-bash
-Copy code
-npm install
-Run the Game: Open index.html in your preferred web browser, or use a local server like VS Code Live Server extension or http-server:
-
-bash
-Copy code
-npx http-server
-Navigate to http://localhost:8080 (or your chosen port).
-
-How to Play
+How To Play
 Start the Game: Click on the 'Start Game' button on the main menu.
 Setup Your Player: Choose your player name, ranch name, and starting monster.
 Select a Ranch Location: Pick a ranch location from the dropdown menu. Each location affects your monster's mood differently.
@@ -64,50 +48,4 @@ JavaScript: Core programming language for game logic.
 Phaser.js: A fast, free, and fun open-source framework for Canvas and WebGL powered browser games.
 Bootstrap: For responsive UI components like buttons and dropdown menus.
 HTML/CSS: For structuring and styling the game interface.
-Project Structure
-css
-Copy code
-pocket-rancher/
-│
-├── src/
-│   ├── components/
-│   │   └── dropDownMenu.js
-│   ├── models/
-│   │   └── Monster.js
-│   ├── scenes/
-│   │   ├── GameScene.js
-│   │   ├── MapScene.js
-│   │   └── PlayerSetupScene.js
-│   └── utils/
-│       └── uiUtils.js
-├── assets/
-│   ├── images/
-│   └── sounds/
-│
-├── index.html
-├── style.css
-└── README.md
-Key Classes and Files
-Monster.js: Handles all the monster's properties, methods for actions, and needs decay.
-GameScene.js: The main game loop, handles player interactions, and monster movements.
-dropDownMenu.js: Manages the UI for actions using a dropdown menu.
-PlayerSetupScene.js: Handles initial player setup, including monster selection and ranch customization.
-Contributing
-Contributions are welcome! Please follow these steps:
 
-Fork the Repository: Click on the 'Fork' button at the top right corner of the repository page.
-Clone the Forked Repository:
-bash
-Copy code
-git clone https://github.com/yourusername/pocket-rancher.git
-Create a New Branch:
-bash
-Copy code
-git checkout -b feature/your-feature-name
-Make Your Changes: Implement your feature or bug fix.
-Commit and Push Your Changes:
-bash
-Copy code
-git commit -m "Add your message here"
-git push origin feature/your-feature-name
-Create a Pull Request: Go to the repository on GitHub and click on 'Compare & pull request.'
