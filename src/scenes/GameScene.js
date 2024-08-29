@@ -69,7 +69,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.lifeSpanText,
-      this.hygieneText
+      this.hygieneText,
+      this.diseaseText // Add disease text object
     );
     this.inventoryWindow.setVisible(false);
   }
@@ -151,6 +152,10 @@ class GameScene extends Phaser.Scene {
       "Life Span: " + this.monster.lifeSpan,
       { fontSize: "16px", fill: "#FFF" }
     );
+    this.diseaseText = this.add.text(16, 176, "Diseases: None", { // Add a new text object for diseases
+        fontSize: "16px",
+        fill: "#FFF",
+      });
 
     // Associate the text objects with the monster instance
     this.monster.setTextObjects(
@@ -158,7 +163,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.lifeSpanText,
-      this.hygieneText
+      this.hygieneText,
+      this.diseaseText
     );
   }
 

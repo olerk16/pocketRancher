@@ -1,4 +1,4 @@
-
+import Diseases from './Diseases.js';
 // src/models/Monster.js
 
 class Monster {
@@ -32,6 +32,7 @@ class Monster {
       this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
       this.favoriteFood = 'apple'; // Example favorite food
       this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
+      this.diseases = []; // Add diseases array
   
       // Text objects will be initialized in GameScene and passed here
       this.hungerText = null;
@@ -39,6 +40,7 @@ class Monster {
       this.energyText = null;
       this.lifeSpanText = null;
       this.hygieneText = null;
+      this.diseaseText = null;
       
       // Bind methods
       this.updateMood = this.updateMood.bind(this);
@@ -75,6 +77,8 @@ class Monster {
       callback: () => this.decreaseLifeSpan(),
       loop: true,
     });
+
+    
 }
   
     // Method to decay needs over time
@@ -87,6 +91,34 @@ class Monster {
       this.updateMood(); // Update mood based on new stats
       this.updateDisplay(); // Update the UI display
     }
+
+    applyDisease(diseaseName) {
+        const disease = Diseases[diseaseName];
+        if (disease) {
+          this.diseases.push(disease);
+          console.log(`${this.name} has contracted ${disease.name}!`);
+    
+          // Apply disease effects
+          Object.keys(disease.effects).forEach((stat) => {
+            this.updateStat(stat, disease.effects[stat]);
+          });
+    
+          // Cure disease after its duration
+          this.scene.time.delayedCall(disease.duration, () => this.cureDisease(diseaseName), [], this);
+        }
+      }
+    
+      applyRandomDisease() {
+        const diseaseNames = Object.keys(Diseases);
+        const randomDisease = Phaser.Utils.Array.GetRandom(diseaseNames);
+        this.applyDisease(randomDisease);
+      }
+    
+      cureDisease(diseaseName) {
+        this.diseases = this.diseases.filter(disease => disease.name !== diseaseName);
+        console.log(`${this.name} has been cured of ${diseaseName}!`);
+        // Additional logic for restoring stats or handling cured state
+      }
   
     // Method to update mood based on current needs
     updateMood() {
@@ -192,6 +224,8 @@ class Monster {
       if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
       if (this.hygieneText) this.hygieneText.setText('Hygiene: ' + this.hygiene);
       if (this.moodText) this.moodText.setText('Mood: ' + this.mood);
+         // Update display for diseases
+      if (this.diseaseText) this.diseaseText.setText('Diseases: ' + (this.diseases.length > 0 ? this.diseases.map(disease => disease.name).join(', ') : 'None'));
     }
   
     adjustHappinessByLocation(ranchLocation) {
