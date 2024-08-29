@@ -161,20 +161,20 @@ class PlayerSetupScene extends Phaser.Scene {
     monsterImage.setTint(0x00ff00); // Highlight the selected monster
 
     // Create the selected monster instance
-    switch (this.selectedMonsterType) {
-      case "monster1":
-        this.selectedMonsterInstance = new Monster(this, 400, 300);
-        break;
-      case "monster2":
-        this.selectedMonsterInstance = new Monster(this, 400, 300);
-        break;
-      case "monster3":
-        this.selectedMonsterInstance = new Monster(this, 400, 300);
-        break;
-      default:
-        this.selectedMonsterInstance = null;
-        break;
-    }
+    // switch (this.selectedMonsterType) {
+    //   case "monster1":
+    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
+    //     break;
+    //   case "monster2":
+    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
+    //     break;
+    //   case "monster3":
+    //     this.selectedMonsterInstance = new Monster(this, 400, 300);
+    //     break;
+    //   default:
+    //     this.selectedMonsterInstance = null;
+    //     break;
+    // }
   }
 
   clearMonsterSelection() {
@@ -187,7 +187,7 @@ class PlayerSetupScene extends Phaser.Scene {
   }
 
   startGame() {
-    if (this.playerName && this.ranchName && this.selectedMonsterInstance) {
+    if (this.playerName && this.ranchName && this.selectedMonsterType) {
       console.log(
         `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.ranchLocation}`
       );
