@@ -222,7 +222,6 @@ class GameScene extends Phaser.Scene {
     this.dropdownMenu.removeMenu(); // Clean up when the scene shuts down
   }
 
-  }
   // Method to use an item from inventory
   useItem() {
     if (this.inventory.length > 0) {
