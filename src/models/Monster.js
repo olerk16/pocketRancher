@@ -181,23 +181,36 @@ class Monster {
         });
     }
   
-    feed(food) {
-      if (this.mood === 'dead') return; // Prevent actions if monster is dead
+    feed(i, button, inventory, gameScene) {
+      if (this.mood === "dead") return; // Prevent actions if monster is dead
       console.log("Feeding the monster");
   
-      let hungerEffect = -10;
-      let happinessEffect = 5;
+      const food = inventory[i];
   
-      if (food === this.favoriteFood) {
-        happinessEffect += 5;
-        hungerEffect -= 5;
+      let hungerEffect = food.hungerAmount;
+      let happinessEffect = food.happinessAmount;
+  
+      if (food.name === this.favoriteFood) {
+          happinessEffect += 5;
+          hungerEffect += 5;
       }
   
-      this.updateStat('hunger', hungerEffect);
-      this.updateStat('happiness', happinessEffect);
+      this.updateStat("hunger", hungerEffect);
+      this.updateStat("happiness", happinessEffect);
       this.updateMood(); // Update mood after feeding
       this.updateDisplay();
-    }
+  
+      // Remove the item from the inventory array
+      inventory.splice(i, 1);
+  
+      // Destroy the button from the screen
+      if (button) {
+          button.destroy();
+      }
+  
+      // Reset the inventory slots to reflect the current state of the inventory
+      gameScene.resetInventorySlots();
+  }
   
     play() {
       if (this.mood === 'tired' || this.mood === 'dead') return; // Prevent actions if monster is tired or dead
