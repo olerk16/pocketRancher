@@ -1,7 +1,5 @@
 // src/scenes/MapScene.js
 
-import { createButton } from "../utils/uiUtils.js";
-
 class MapScene extends Phaser.Scene {
     constructor() {
       super({ key: 'MapScene' });
@@ -18,10 +16,20 @@ class MapScene extends Phaser.Scene {
       this.add.image(400, 300, 'mapBackground');
   
       // Add a button to return to the GameScene
-      createButton(this, 700, 50, "Back", () => {
-        this.scene.start("GameScene"); // Switch back to the game scene
+      const returnButton = this.add.text(700, 550, 'Return to Game', {
+        fontSize: '20px',
+        fill: '#FFF'
+      }).setInteractive();
+  
+      returnButton.on('pointerdown', () => {
+        this.scene.start('GameScene', {
+          // You can pass data back to GameScene if needed
+        });
       });
+  
+      // Additional map interactions can be added here
     }
+  
     update() {
       // Logic for the map scene if needed
     }
