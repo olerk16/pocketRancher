@@ -17,7 +17,7 @@ class GameScene extends Phaser.Scene {
     this.playerCoins = data.playerCoins;
     this.inventory = data.inventory;
     this.ranchLocation = data.ranchLocation;
-    this.monsterName = data.monsterName;
+    this.monsterName = data.monsterName
 
     // Initialize Monster in GameScene
     this.monster = new Monster(this, 400, 300, this.monsterName);
@@ -27,7 +27,6 @@ class GameScene extends Phaser.Scene {
     // Load assets for the game scene
     // Load monster sprite based on selected monster type
     this.load.image("monsterSprite", `assets/images/${this.monsterType}.png`);
-    this.load.image("exitButton", "assets/images/icons/exitButton.webp");
     // this.load.image('background', 'assets/images/backGrounds/grasslandRanch.webp');
 
     // Load background images for each location
@@ -75,79 +74,25 @@ class GameScene extends Phaser.Scene {
     );
     this.inventoryWindow.setVisible(false);
   }
-  createInventoryWindow() {
-    // Calculate the bottom-left position
-    const windowHeight = this.scale.height;
-    const windowWidth = this.scale.width;
+  createInventoryWindow(){
+   // Calculate the bottom-left position
+  const windowHeight = this.scale.height;
+  //const windowWidth = this.scale.width;
 
-    // Define the size of the inventory window
-    const inventoryWidth = windowWidth - 100;
-
-    // Set the inventory window to be bottom-left
-    this.inventoryWindow = this.add.container(50, windowHeight - 100); // Adjust the x, y position as needed
-    const background = this.add
-      .rectangle(
-        0,
-        0, // Position at the top-left of the container
-        windowWidth - 100,
-        100, // Width and height of the background (adjust as needed)
-        0x000000, // Black color in hexadecimal
-        0.5 // Alpha value (0 is fully transparent, 1 is fully opaque)
-      )
-      .setOrigin(0);
-
-    // Add the background to the inventory window container
-    this.inventoryWindow.add(background);
-    this.populateInventorySlots();
-
-    const exitButton = this.add
-      .image(inventoryWidth - 20, 20, "exitButton")
-      .setScale(0.04)
-      .setAlpha(0.7)
-      .setInteractive({ useHandCursor: true });
-
-    exitButton.on("pointerdown", () => {
-      this.inventoryWindow.setVisible(false);
-    });
-
-    this.inventoryWindow.add(exitButton);
-  }
-  resetInventorySlots() {
-    // Remove all existing slots
-    for (let i = 0; i < this.inventorySlot.length; i++) {
-      this.inventorySlot[i].destroy();
-    }
-
-    // Clear the array
+  // Set the inventory window to be bottom-left
+  this.inventoryWindow = this.add.container(50, windowHeight - 100); // Adjust the x, y position as needed
     this.inventorySlot = [];
-
-    // Repopulate the slots with the updated inventory
-    this.populateInventorySlots();
-  }
-
-  populateInventorySlots() {
-    this.inventorySlot = []; // Clear the slots array
-
-    for (let i = 0; i < this.inventory.length; i++) {
-      const slot = createImageButton(
-        this,
-        30 + i * 55,
-        50,
-        this.inventory[i].name,
-        () => this.monster.feed(i, slot, this.inventory, this),
-        50,
-        50
-      );
-
-      this.inventorySlot.push(slot); // Track the slot for future removal
+    for(let i = 0; i < this.inventory.length; i++){
+      const slot = createImageButton(this, 30 + i * 55, 50, this.inventory[i].name, ()=>this.feed(),50,50);
+      
       this.inventoryWindow.add(slot);
     }
+
   }
-  toggleInventory() {
-    const isVisible = this.inventoryWindow.visible;
+  toggleInventory(){
+    const isVisible = this.createInventoryWindow.visible;
     this.inventoryWindow.setVisible(!isVisible);
   }
-
   setBackgroundImage() {
     // Create a mapping object that associates each location with its corresponding background image key
     const backgroundImages = {
@@ -300,16 +245,17 @@ class GameScene extends Phaser.Scene {
     this.monster.updateDisplay(); // Refresh the display of monster properties
   }
 
+
   goToMarket() {
-    // Switch to the market scene
+     // Switch to the market scene
     this.scene.start("MarketBazaarScene", {
-      inventory: this.inventory,
-      playerCoins: this.playerCoins,
+      inventory:this.inventory,
+      playerCoins:this.playerCoins,
       playerName: this.playerName,
       ranchName: this.ranchName,
       selectedMonster: this.monster, // Pass the monster if needed
       monsterType: this.monsterType,
-      ranchLocation: this.ranchLocation,
+      ranchLocation: this.ranchLocation
     }); // Switch to the market scene
   }
 

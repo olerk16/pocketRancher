@@ -1,5 +1,5 @@
 // src/scenes/MonsterCemeteryScene.js
-import { createButton } from "../utils/uiUtils.js";
+
 class MonsterCemeteryScene extends Phaser.Scene {
     constructor() {
       super({ key: "MonsterCemeteryScene" });
@@ -27,8 +27,23 @@ class MonsterCemeteryScene extends Phaser.Scene {
         this.displayDeceasedMonsters();
     
         // Add a button to go back to the Game Scene
-        createButton(this, 700, 50, "Back", () => {
-          this.scene.start("GameScene"); // Switch back to the game scene
+        const backButton = this.add.text(400, 550, "Back to Ranch", {
+          fontSize: "20px",
+          fill: "#FFF",
+          backgroundColor: "#000",
+          padding: { x: 10, y: 5 },
+        }).setOrigin(0.5).setInteractive();
+    
+        backButton.on("pointerdown", () => {
+          this.scene.start("GameScene", { 
+            playerName: this.playerName,
+            ranchName: this.ranchName,
+            selectedMonster: this.monster,
+            monsterType: this.monsterType,
+            playerCoins: this.playerCoins,
+            inventory: this.inventory,
+            ranchLocation: this.ranchLocation 
+          });
         });
       }
     
