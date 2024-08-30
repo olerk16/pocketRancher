@@ -26,24 +26,8 @@ class MonsterCemeteryScene extends Phaser.Scene {
         // Display the list of deceased monsters
         this.displayDeceasedMonsters();
     
-        // Add a button to go back to the Game Scene
-        const backButton = this.add.text(400, 550, "Back to Ranch", {
-          fontSize: "20px",
-          fill: "#FFF",
-          backgroundColor: "#000",
-          padding: { x: 10, y: 5 },
-        }).setOrigin(0.5).setInteractive();
-    
-        backButton.on("pointerdown", () => {
-          this.scene.start("GameScene", { 
-            playerName: this.playerName,
-            ranchName: this.ranchName,
-            selectedMonster: this.monster,
-            monsterType: this.monsterType,
-            playerCoins: this.playerCoins,
-            inventory: this.inventory,
-            ranchLocation: this.ranchLocation 
-          });
+        createButton(this, 700, 50, "Back", () => {
+          this.scene.start("GameScene"); // Switch back to the game scene
         });
       }
     
