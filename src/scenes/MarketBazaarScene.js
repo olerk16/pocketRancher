@@ -36,9 +36,6 @@ class MarketBazaarScene extends Phaser.Scene {
       fontSize: "16px",
       fill: "#FFF",
     });
-
-    
-    createImageButton(this, 100, 250, "potato", () => this.buyItem(items[0]),100, 100);
     // Use createButton utility function to create a back button
     createButton(this, 700, 50, "Back", () => {
       this.scene.start("GameScene", {
