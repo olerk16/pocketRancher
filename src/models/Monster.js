@@ -92,6 +92,15 @@ class Monster {
       this.updateDisplay(); // Update the UI display
     }
 
+    
+    // Method to add a disease to the monster
+    
+    applyRandomDisease() {
+        const diseaseNames = Object.keys(Diseases);
+        const randomDisease = Phaser.Utils.Array.GetRandom(diseaseNames);
+        this.applyDisease(randomDisease);
+    }
+
     applyDisease(diseaseName) {
         const disease = Diseases[diseaseName];
         if (disease) {
@@ -108,13 +117,7 @@ class Monster {
         }
       }
     
-      applyRandomDisease() {
-        const diseaseNames = Object.keys(Diseases);
-        const randomDisease = Phaser.Utils.Array.GetRandom(diseaseNames);
-        this.applyDisease(randomDisease);
-      }
-    
-      cureDisease(diseaseName) {
+    cureDisease(diseaseName) {
         this.diseases = this.diseases.filter(disease => disease.name !== diseaseName);
         console.log(`${this.name} has been cured of ${diseaseName}!`);
         // Additional logic for restoring stats or handling cured state
