@@ -70,7 +70,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.lifeSpanText,
-      this.hygieneText
+      this.hygieneText,
+      this.diseaseText // Add disease text object
     );
     this.inventoryWindow.setVisible(false);
   }
@@ -206,6 +207,10 @@ class GameScene extends Phaser.Scene {
       "Life Span: " + this.monster.lifeSpan,
       { fontSize: "16px", fill: "#FFF" }
     );
+    this.diseaseText = this.add.text(16, 176, "Diseases: None", { // Add a new text object for diseases
+        fontSize: "16px",
+        fill: "#FFF",
+      });
 
     // Associate the text objects with the monster instance
     this.monster.setTextObjects(
@@ -213,7 +218,8 @@ class GameScene extends Phaser.Scene {
       this.happinessText,
       this.energyText,
       this.lifeSpanText,
-      this.hygieneText
+      this.hygieneText,
+      this.diseaseText
     );
   }
 
@@ -225,11 +231,47 @@ class GameScene extends Phaser.Scene {
       { text: "Sleep", onClick: () => this.monster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
       { text: "Use Item", onClick: () => this.useItem() },
+      { text: "Journey", onClick: () => this.startJourney() },
       { text: "View Map", onClick: () => this.viewMap() },
       { text: "Cemetery", onClick: () => this.viewCemetery() },
     ]);
   }
 
+  startJourney() {
+    console.log("Journey started!");
+    const journeyDuration = Phaser.Math.Between(5000, 15000); // Random duration between 5 and 15 seconds
+
+    // Display journey duration to the player
+    const journeyDurationText = this.add.text(16, 220, `Journey Time: ${journeyDuration / 1000} seconds`, {
+      fontSize: "16px",
+      fill: "#FFF",
+    });
+
+    // Hide the monster sprite
+    this.monster.sprite.setVisible(false);
+
+    // Disable dropdown menu during the journey
+    this.dropdownMenu.disableMenu();
+
+    // Set a timer to bring the monster back and reward coins
+    this.time.delayedCall(journeyDuration, () => {
+      this.monster.sprite.setVisible(true); // Show monster again
+      const earnedCoins = Phaser.Math.Between(10, 50); // Random coin reward
+      this.playerCoins += earnedCoins;
+      this.coinsText.setText("Coins: " + this.playerCoins);
+      console.log(`Journey complete! You earned ${earnedCoins} coins.`);
+      
+      // Re-enable dropdown menu after journey
+      this.dropdownMenu.enableMenu();
+
+      // Remove journey duration text
+      journeyDurationText.destroy();
+
+      // Apply a random disease
+      this.monster.applyRandomDisease(); // Apply random disease to the monster
+    });
+  }
+  
   viewCemetery() {
     this.scene.start("MonsterCemeteryScene", {
       deceasedMonsters: this.deceasedMonsters,

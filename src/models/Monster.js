@@ -1,10 +1,12 @@
+
+import Diseases from './Diseases.js';
 // src/models/Monster.js
 
 class Monster {
   constructor(scene, x, y, name = "unnamed monster") {
     this.scene = scene;
     this.sprite = scene.add.image(x, y, "monster");
-    //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+    //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bound
     this.name = name;
 
     // Initialize monster properties
@@ -51,6 +53,55 @@ class Monster {
     // Start the timers
     this.setupTimers();
   }
+      this.name = name
+  
+      // Initialize monster properties
+      this.hunger = 50;
+      this.happiness = 50;
+      this.energy = 50;
+      this.lifeSpan = 5;
+      this.hygiene = 50;
+
+      // Store the current movement direction and speed
+      this.movementSpeed = 50; // Pixels per second
+      this.direction = { x: 1, y: 1 }; // Start moving diagonally
+  
+      // Define thresholds and decay rates
+      this.DECAY_RATE = 5; // Rate at which needs decay
+      this.THRESHOLDS = {
+        hunger: 20,
+        happiness: 30,
+        energy: 30,
+        hygiene: 30,
+      };
+  
+      // New properties
+      this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
+      this.favoriteFood = 'apple'; // Example favorite food
+      this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
+      this.diseases = []; // Add diseases array
+  
+      // Text objects will be initialized in GameScene and passed here
+      this.hungerText = null;
+      this.happinessText = null;
+      this.energyText = null;
+      this.lifeSpanText = null;
+      this.hygieneText = null;
+      this.diseaseText = null;
+      
+      // Bind methods
+      this.updateMood = this.updateMood.bind(this);
+      this.decayNeeds = this.decayNeeds.bind(this);
+      this.decreaseLifeSpan = this.decreaseLifeSpan.bind(this);
+      
+      // Bind methods
+      this.moveRandomly = this.moveRandomly.bind(this);
+      this.updatePosition = this.updatePosition.bind(this);
+      
+      // Start the timers
+      this.setupTimers();
+      
+    }
 
   setupTimers() {
     // Decay needs over time
@@ -101,6 +152,76 @@ class Monster {
       this.mood = "dirty";
     } else {
       this.mood = "happy";
+
+    
+}
+  
+    // Method to decay needs over time
+    decayNeeds() {
+      this.updateStat('hunger', -this.DECAY_RATE);
+      this.updateStat('thirst', -this.DECAY_RATE);
+      this.updateStat('energy', -this.DECAY_RATE);
+      this.updateStat('hygiene', -this.DECAY_RATE);
+  
+      this.updateMood(); // Update mood based on new stats
+      this.updateDisplay(); // Update the UI display
+    }
+
+    
+    // Method to add a disease to the monster
+    
+    applyRandomDisease() {
+        const diseaseNames = Object.keys(Diseases);
+        const randomDisease = Phaser.Utils.Array.GetRandom(diseaseNames);
+        this.applyDisease(randomDisease);
+    }
+
+    applyDisease(diseaseName) {
+        const disease = Diseases[diseaseName];
+        if (disease) {
+          this.diseases.push(disease);
+          console.log(`${this.name} has contracted ${disease.name}!`);
+    
+          // Apply disease effects
+          Object.keys(disease.effects).forEach((stat) => {
+            this.updateStat(stat, disease.effects[stat]);
+          });
+    
+          // Cure disease after its duration
+          this.scene.time.delayedCall(disease.duration, () => this.cureDisease(diseaseName), [], this);
+        }
+      }
+    
+    cureDisease(diseaseName) {
+        this.diseases = this.diseases.filter(disease => disease.name !== diseaseName);
+        console.log(`${this.name} has been cured of ${diseaseName}!`);
+        // Additional logic for restoring stats or handling cured state
+      }
+  
+    // Method to update mood based on current needs
+    updateMood() {
+        if (this.hunger < this.THRESHOLDS.hunger || this.energy < this.THRESHOLDS.energy) {
+          this.mood = 'hungry';
+        } else if (this.happiness < this.THRESHOLDS.happiness) {
+          this.mood = 'sad';
+        } else if (this.energy < this.THRESHOLDS.energy) {
+          this.mood = 'tired';
+        } else if (this.hygiene < this.THRESHOLDS.hygiene) {
+          this.mood = 'dirty';
+        } else {
+          this.mood = 'happy';
+        }
+    
+        console.log(`Monster mood: ${this.mood}`);
+      }
+  
+    // Method to set text objects
+    setTextObjects(hungerText, happinessText, energyText, lifeSpanText, hygieneText) {
+      this.hungerText = hungerText;
+      this.happinessText = happinessText;
+      this.energyText = energyText;
+      this.lifeSpanText = lifeSpanText;
+      this.hygieneText = hygieneText;
     }
 
     console.log(`Monster mood: ${this.mood}`);
@@ -177,6 +298,29 @@ class Monster {
     // Destroy the button from the screen
     if (button) {
         button.destroy();
+  
+    sleep() {
+      if (this.mood === 'dead') return; // Prevent actions if monster is dead
+      this.updateStat('energy', 100 - this.energy); // Fully restore energy
+      this.updateStat('happiness', 10);
+      this.updateMood(); // Update mood after sleeping
+      this.updateDisplay();
+    }
+  
+    updateStat(stat, value) {
+      this[stat] = Math.min(100, Math.max(0, this[stat] + value)); // Clamp between 0 and 100
+    }
+  
+    updateDisplay() {
+      if (this.hungerText) this.hungerText.setText('Hunger: ' + this.hunger);
+      if (this.happinessText) this.happinessText.setText('Happiness: ' + this.happiness);
+      if (this.energyText) this.energyText.setText('Energy: ' + this.energy);
+      if (this.trainingText) this.trainingText.setText('Training: ' + this.training);
+      if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
+      if (this.hygieneText) this.hygieneText.setText('Hygiene: ' + this.hygiene);
+      if (this.moodText) this.moodText.setText('Mood: ' + this.mood);
+         // Update display for diseases
+      if (this.diseaseText) this.diseaseText.setText('Diseases: ' + (this.diseases.length > 0 ? this.diseases.map(disease => disease.name).join(', ') : 'None'));
     }
 
     // Reset the inventory slots to reflect the current state of the inventory
