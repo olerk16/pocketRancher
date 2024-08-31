@@ -3,6 +3,7 @@
 import { createButton, createImageButton } from "../utils/uiUtils.js"; // Import the utility functions
 import DropdownMenu from "../components/dropDownMenu.js"; // Import the DropdownMenu component
 import Monster from "../models/Monster.js";
+import Monsters from "../models/Monsters.js"; // Import the Monsters object
 
 class GameScene extends Phaser.Scene {
   constructor() {
@@ -10,26 +11,32 @@ class GameScene extends Phaser.Scene {
   }
 
   init(data) {
+    console.log("monster type gamescene", data.monsterType)
     // Receive data passed from the PlayerSetupScene
     this.playerName = data.playerName;
     this.ranchName = data.ranchName;
-    this.monsterType = data.monsterType; // Use the passed monster type
     this.playerCoins = data.playerCoins;
     this.inventory = data.inventory;
     this.ranchLocation = data.ranchLocation;
     this.monsterName = data.monsterName;
 
-    // Initialize Monster in GameScene
-    this.monster = new Monster(this, 400, 300, this.monsterName);
+    // Select a random monster type
+    const monsterTypes = Object.keys(Monsters);
+    this.monsterType = Phaser.Utils.Array.GetRandom(monsterTypes); // Get a random monster type from the Monsters object
+
+
+
+        // Initialize Monster in GameScene
+        this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName);
+
   }
 
   preload() {
-    // Load assets for the game scene
-    // Load monster sprite based on selected monster type
-    this.load.image("monsterSprite", `assets/images/${this.monsterType}.png`);
+    //  Load monster sprite based on selected monster type
+    Object.values(Monsters).forEach(monster => {
+      this.load.image(monster.spriteKey, `assets/images/${monster.spriteKey}.png`);
+    });
     this.load.image("exitButton", "assets/images/icons/exitButton.webp");
-
-    // this.load.image('background', 'assets/images/backGrounds/grasslandRanch.webp');
 
     // Load background images for each location
     this.load.image(
@@ -176,7 +183,7 @@ class GameScene extends Phaser.Scene {
   }
 
   addMonsterToScene() {
-    this.monster.sprite = this.add.image(400, 300, this.monsterType);
+    this.monster.sprite = this.add.image(400, 300, `${this.monster.type}Sprite`);
     this.monster.sprite.setScale(0.5);
   }
 

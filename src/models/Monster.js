@@ -1,19 +1,26 @@
 import Diseases from './Diseases.js';
+import Monsters from './Monsters.js'; // Import the new Monsters object
 // src/models/Monster.js
 
 class Monster {
-    constructor(scene, x, y, name = 'unnamed monster') {
+    constructor(scene, x, y, type, name = 'unnamed monster') {
+      console.log("monsters", Monsters[type].spriteKey)
+      const monsterConfig = Monsters[type]; // Get the specific monster configuration
+
       this.scene = scene;
-      this.sprite = scene.add.image(x, y, 'monster');
-    //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+      this.sprite = scene.add.image(x, y, Monsters[type].spriteKey); // Use the sprite key from Monsters object
+      //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
       this.name = name
+      this.type = type
   
       // Initialize monster properties
-      this.hunger = 50;
-      this.happiness = 50;
-      this.energy = 50;
-      this.lifeSpan = 5;
-      this.hygiene = 50;
+      const { hunger, happiness, energy, hygiene, lifeSpan } = Monsters[type].initialStats;
+
+      this.hunger = hunger;
+      this.happiness = happiness;
+      this.energy = energy;
+      this.hygiene = hygiene;
+      this.lifeSpan = lifeSpan;
 
       // Store the current movement direction and speed
       this.movementSpeed = 50; // Pixels per second
@@ -30,7 +37,7 @@ class Monster {
   
       // New properties
       this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
-      this.favoriteFood = 'apple'; // Example favorite food
+      this.favoriteFood = Monsters[type].favoriteFood; // Example favorite food
       this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
       this.diseases = []; // Add diseases array
   
