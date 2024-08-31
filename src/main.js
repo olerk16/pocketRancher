@@ -8,8 +8,6 @@ import MapScene from "./scenes/MapScene.js";
 import MonsterCemeteryScene from "./scenes/MonsterCemeteryScene.js";
 import BattleScene from "./scenes/BattleScene.js";
 
-import gameState from "./store/gameState.js";
-
 // Define the Phaser game configuration
 const config = {
   type: Phaser.AUTO,
@@ -35,7 +33,3 @@ const config = {
 
 // Create a new Phaser game with the configuration
 const game = new Phaser.Game(config);
-
-// set initial game state
-
-gameState.currency = 100;

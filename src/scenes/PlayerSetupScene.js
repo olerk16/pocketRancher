@@ -1,8 +1,8 @@
 // src/scenes/PlayerSetupScene.js
 
 import { createButton } from "../utils/uiUtils.js"; // Import the utility function
-// import Peacocktopus from '../models/Species/Peacocktopus.js'; // Import your specific monster classes
 import Monster from "../models/Monster.js";
+import Monsters from "../models/Monsters.js"; // Import the Monsters object
 
 class PlayerSetupScene extends Phaser.Scene {
   constructor() {
@@ -14,21 +14,15 @@ class PlayerSetupScene extends Phaser.Scene {
     this.playerCoins = 100;
     this.inventory = [];
     this.selectedMonsterType = null;
-    this.selectedMonsterInstance = null; // Store the created monster instance
     this.ranchLocation = null // default location
     this.monsterName = "";
   }
 
   preload() {
-    // Load assets for the player setup scene
-    this.load.image("monster1", "assets/images/monster1.png"); // Example monster sprites
-    this.load.image("monster2", "assets/images/monster2.png");
-    this.load.image("monster3", "assets/images/monster3.png");
-
-//       // Load background images for each location
-//   this.load.image("grassLandRanch", "assets/images/backGrounds/grassLandRanch.webp");
-//   this.load.image("desertRanch", "assets/images/backGrounds/desertRanch.webp");
-//   this.load.image("mountainRanch", "assets/images/backGrounds/mountainRanch.webp");
+     // Load assets for the player setup scene dynamically based on Monsters object
+     Object.values(Monsters).forEach(monster => {
+      this.load.image(monster.spriteKey, `assets/images/${monster.spriteKey}.png`);
+    });
   }
 
   create() {
@@ -42,21 +36,14 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Create input fields and buttons using DOM elements
     this.createInputFields();
-    this.createMonsterSelection();
-    this.createDropdownMenu();
-    this.createQuickStart(); // for testing 
-  }
-  createQuickStart(){
+    // this.createMonsterSelection();
+    this.createDropdownMenu()
 
-    this.playerName = "testPlayerName";
-    this.ranchName = "TestDesertRanch";
-    this.playerCoins = 100;
-    this.inventory = [];
-    this.selectedMonsterType = 'monster1';
-    this.selectedMonsterInstance = null; // Store the created monster instance
-    this.ranchLocation ='desert' // default location
-    this.monsterName = "testMonsterName";
-    createButton(this, 350, 200, "Quick Start Game", () => this.startGame());
+    // Automatically assign a random monster
+    this.assignRandomMonster();
+
+    // Create a button to confirm the setup and start the game
+    createButton(this, 400, 400, "Start Game", () => this.startGame());
   }
 
   createInputFields() {
@@ -138,43 +125,14 @@ class PlayerSetupScene extends Phaser.Scene {
     });
   }
 
-  createMonsterSelection() {
-    // Instructions for selecting a monster
-    this.add
-      .text(400, 250, "Select your starting monster:", {
-        fontSize: "20px",
-        fill: "#FFF",
-      })
-      .setOrigin(0.5);
+  assignRandomMonster() {
+    // Get a random monster from the Monsters object
+    const monsterTypes = Object.keys(Monsters);
+    this.selectedMonsterType = Phaser.Utils.Array.GetRandom(monsterTypes);
 
-    // Display monster options on screen
-    const monster1 = this.add.image(300, 350, "monster1").setInteractive();
-    const monster2 = this.add.image(400, 350, "monster2").setInteractive();
-    const monster3 = this.add.image(500, 350, "monster3").setInteractive();
+    console.log(`Assigned Random Monster: ${this.selectedMonsterType}`);
 
-    // Example monster selection buttons
-    createButton(this, 300, 300, "Monster 1", () =>
-      this.selectMonster("monster1", monster1)
-    );
-    createButton(this, 400, 300, "Monster 2", () =>
-      this.selectMonster("monster2", monster2)
-    );
-    createButton(this, 500, 300, "Monster 3", () =>
-      this.selectMonster("monster3", monster3)
-    );
-
-    // Create a button to confirm the selection and start the game
-    createButton(this, 400, 400, "Start Game", () => this.startGame());
-  }
-
-  selectMonster(monsterType, monsterImage) {
-    this.selectedMonsterType = monsterType;
-    console.log(`Selected Monster: ${this.selectedMonsterType}`);
-
-    this.clearMonsterSelection(); // Clear previous selections
-    monsterImage.setTint(0x00ff00); // Highlight the selected monster
-
-    // Create input field for monster name after selecting a monster
+    // Create input field for monster name after assigning the monster
     this.createMonsterNameInput();
   }
 
@@ -206,15 +164,6 @@ class PlayerSetupScene extends Phaser.Scene {
     });
   }
 
-  clearMonsterSelection() {
-    // Reset all monster images to their original state
-    this.children.each((child) => {
-      if (child.type === "Image") {
-        child.clearTint(); // Remove tint to clear selection
-      }
-    });
-  }
-
   startGame() {
     if (this.playerName && this.ranchName && this.selectedMonsterType && this.monsterName) {
       console.log(
@@ -224,7 +173,6 @@ class PlayerSetupScene extends Phaser.Scene {
       this.scene.start("GameScene", {
         playerName: this.playerName,
         ranchName: this.ranchName,
-        selectedMonster: this.selectedMonsterInstance, // Pass the monster instance
         monsterType: this.selectedMonsterType, // Pass the monster type
         monsterName: this.monsterName,
         playerCoins: this.playerCoins,
