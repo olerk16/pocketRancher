@@ -1,5 +1,5 @@
 // src/scenes/MonsterCemeteryScene.js
-
+import { createButton} from "../utils/uiUtils.js";
 class MonsterCemeteryScene extends Phaser.Scene {
     constructor() {
       super({ key: "MonsterCemeteryScene" });
