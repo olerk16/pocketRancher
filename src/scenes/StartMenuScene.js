@@ -11,7 +11,6 @@ class StartMenuScene extends Phaser.Scene {
     // Load any assets needed for the start menu here
     // this.load.image('startButtonBg', 'assets/images/startButton.png'); // Optional: background image for the button
     this.setImages();
-    this.setRegistry();
   }
 
   create() {
@@ -25,13 +24,13 @@ class StartMenuScene extends Phaser.Scene {
       this.scene.start("PlayerSetupScene"); // start new player setup scene
     });
   }
-  setRegistry() {
-    this.registry.set("gold", 100);
-    this.registry.set("inventory", []);
-  }
+
   setImages() {
     this.load.image("potato", "assets/images/items/potato.webp"); // Example item
-    this.load.image("steak", "assets/images/items/steak.webp"); // Example item
+    this.load.image("steak", "assets/images/items/steak.webp");
+    this.load.image("toyShaker", "assets/images/items/toyShaker.webp");
+    this.load.image("flowers", "assets/images/items/flowers.webp");
+    this.load.image("medicBag", "assets/images/items/medicBag.webp");
     this.load.image("bazaar", "assets/images/backGrounds/bazaar.webp");
   }
 }

@@ -43,7 +43,20 @@ class PlayerSetupScene extends Phaser.Scene {
     // Create input fields and buttons using DOM elements
     this.createInputFields();
     this.createMonsterSelection();
-    this.createDropdownMenu()
+    this.createDropdownMenu();
+    this.createQuickStart(); // for testing 
+  }
+  createQuickStart(){
+
+    this.playerName = "testPlayerName";
+    this.ranchName = "TestDesertRanch";
+    this.playerCoins = 100;
+    this.inventory = [];
+    this.selectedMonsterType = 'monster1';
+    this.selectedMonsterInstance = null; // Store the created monster instance
+    this.ranchLocation ='desert' // default location
+    this.monsterName = "testMonsterName";
+    createButton(this, 350, 200, "Quick Start Game", () => this.startGame());
   }
 
   createInputFields() {
