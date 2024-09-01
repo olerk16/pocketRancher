@@ -2,6 +2,7 @@
 
 import { createButton, createImageButton } from "../utils/uiUtils.js";
 import Items from "../models/Items.js";
+import { InventoryComponent } from "../components/InventoryComponent.js";
 
 class MarketBazaarScene extends Phaser.Scene {
   constructor() {
@@ -38,7 +39,14 @@ class MarketBazaarScene extends Phaser.Scene {
 
     this.createSceneTitle();
     // creating items here
-    this.createInventoryWindow();
+    const items = [
+      Items.Potato,
+      Items.Steak,
+      Items.ToyShaker,
+      Items.Flowers,
+      Items.MedicBag,
+    ];
+    this.inventoryComponent = new InventoryComponent(this, 100, 100, 600, 150, items);;
     // Display player's current coins
     this.coinsText = this.add.text(16, 16, "Coins: " + this.playerCoins, {
       fontSize: "16px",
@@ -84,105 +92,11 @@ class MarketBazaarScene extends Phaser.Scene {
     // Bring the text to the top so it appears above the rectangle
     text.setDepth(1);
   }
-  createInventoryWindow() {
-    // Create the inventory container
-    const inventoryContainer = this.add.container(100, 100);
+  buyItem(item){
 
-    // Define the grid dimensions
-    const columns = 5; // Number of columns in the grid
-    const rows = 1; // Number of rows in the grid (can be adjusted)
-    const slotSize = 100; // Size of each inventory slot (width and height)
-    const padding = 10; // Space between slots
-
-    // Create the inventory slots
-    const items = [
-      Items.Potato,
-      Items.Steak,
-      Items.ToyShaker,
-      Items.Flowers,
-      Items.MedicBag,
-    ];
-    let itemIndex = 0;
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < columns; col++) {
-        const x = col * (slotSize + padding);
-        const y = row * (slotSize + padding);
-
-        // Create a slot (rectangle)
-        const slot = this.add
-          .rectangle(x, y, slotSize, slotSize, 0xCAA01E, 0.5)
-          .setStrokeStyle(2, 0x8B4513)
-          .setOrigin(0);
-
-        // Add the slot to the container
-        inventoryContainer.add(slot);
-
-        // Check if there is an item for this slot
-        if (itemIndex < items.length) {
-          const item = items[itemIndex];
-          // Create the item image and center it in the slot
-          const itemImage = this.add
-            .image(x + slotSize / 2, y + slotSize / 2, item.name)
-            .setDisplaySize(75, 75) // Scale the item to fit the slot
-            .setInteractive({ useHandCursor: true }) // Make it interactive
-            .on("pointerdown", () => this.buyItem(item))
-            .on("pointerover", () => this.showDescription(item))
-            .on("pointerout", () => this.hideDescription());
-
-          // Add the item to the container
-          inventoryContainer.add(itemImage);
-
-          itemIndex++;
-        }
-      }
-    }
-  }
-  showDescription(item) {
-    this.descriptionText.setText(item.description);
-
-    // Calculate the position for bottom-right alignment
-    const { width, height } = this.scale;
-    const textWidth = this.descriptionText.width;
-    const textHeight = this.descriptionText.height;
-
-    this.descriptionText.setPosition(
-      width - textWidth - 20,
-      height - textHeight - 20
-    );
-    this.descriptionText.setVisible(true);
-  }
-
-  hideDescription() {
-    this.descriptionText.setVisible(false);
-  }
-  buyItem(item) {
-    // Clear previous text notification if it exists
-    if (this.notificationText) {
-      this.notificationText.destroy();
-    }
-
-    if (this.player.coins >= item.price) {
-      this.player.coins -= item.price; // Deduct coins directly from the player object
-      this.player.addItemToInventory(item); // Use player's method to add the item to inventory
-
-      this.coinsText.setText("Coins: " + this.player.coins);// Update the display
-
-      // Notify the player of the purchase
-      this.notificationText = this.add
-        .text(400, 300, `Bought ${item.name}!`, {
-          fontSize: "16px",
-          fill: "#FFF",
-        })
-        .setOrigin(0.5);
-    } else {
-      // Show message if player cannot afford the item
-      this.notificationText = this.add
-        .text(400, 300, "Not enough coins!", {
-          fontSize: "16px",
-          fill: "#FF0000",
-        })
-        .setOrigin(0.5);
+    if(item.price <= this.player.coins){
+      this.player.coins -= item.price;
+      this.inventory.push(item);
     }
   }
 }
