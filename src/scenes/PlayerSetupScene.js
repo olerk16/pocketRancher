@@ -5,6 +5,8 @@ import Monsters from "../models/Monsters.js"; // Import the Monsters object
 import Player from "../models/Player.js";
 import InputComponent from "../components/InputComponent.js";
 import RanchLocationDropdown from "../components/RanchLocationDropdown.js"; // Import the new RanchLocationDropdown component
+import DialogComponent from "../components/DialogComponent.js"; // Import the new DialogComponent
+
 
 
 class PlayerSetupScene extends Phaser.Scene {
@@ -25,15 +27,7 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Set the scene context for the player instance
     this.player.setScene(this);
-
-    // Add instructions text
-    this.add
-      .text(400, 100, "Set up your player and ranch", {
-        fontSize: "24px",
-        fill: "#FFF",
-      })
-      .setOrigin(0.5);
-
+    
     // Create input fields using the new InputComponent
     this.setupInputFields();
 
@@ -45,6 +39,17 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Create a button to confirm the setup and start the game
     createButton(this, 400, 400, "Start Game", () => this.startGame());
+
+    // Create a dialog component and display instructions
+    this.dialog = new DialogComponent(this, 400, 300, 300, 150, "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.");
+    this.dialog.showDialog(); // Show the dialog with the initial message
+
+    // Hide the dialog after 5 seconds if needed
+    this.time.delayedCall(5000, () => {
+      if (this.dialog) {
+        this.dialog.hideDialog();
+      }
+    });
   }
 
   setupInputFields() {
