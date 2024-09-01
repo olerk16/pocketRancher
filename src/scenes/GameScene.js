@@ -20,11 +20,17 @@ class GameScene extends Phaser.Scene {
     this.playerCoins = this.player.coins;
     this.inventory = this.player.inventory;
     this.ranchLocation = this.player.ranchLocation;
-    this.monsterName = this.player.monsters[0].name; // Assuming there's at least one monster
-    this.monsterType = this.player.monsters[0].type;
     
-   // Select the player's monster and Initialize
-   this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName)
+    // Get the active monster from the player
+    this.activeMonster = this.player.getActiveMonster();
+    
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.monsterType = this.activeMonster.type;
+      this.monsterName = this.activeMonster.name;
+    } else {
+      this.monsterType = null;
+      this.monsterName = null;
+    }
   }
 
   preload() {
@@ -53,15 +59,22 @@ class GameScene extends Phaser.Scene {
   create() {
     this.setBackgroundImage();
     this.addPlayerInfo();
-    this.addMonsterToScene();
-    this.setupTextObjects();
+    // Only add monster to the scene if it is not frozen
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.addMonsterToScene();
+      this.setupTextObjects();
+      this.setupMovement();
+    } else {
+      console.log("No active monster to display or monster is frozen.");
+    }
+
     this.createDropdownMenu();
-    this.setupMovement();
     this.createInventoryWindow();
 
     // Adjust monster's happiness based on the selected location
-    // toDo make function effect other stats besides just happiness
-    this.monster.adjustHappinessByLocation(this.ranchLocation);
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.activeMonster.adjustHappinessByLocation(this.ranchLocation);
+    }
 
     // Player currency
     this.coinsText = this.add.text(16, 200, "Coins: " + this.playerCoins, {
@@ -70,14 +83,16 @@ class GameScene extends Phaser.Scene {
     });
 
     // Associate the text objects with the monster instance
-    this.monster.setTextObjects(
-      this.hungerText,
-      this.happinessText,
-      this.energyText,
-      this.lifeSpanText,
-      this.hygieneText,
-      this.diseaseText // Add disease text object
-    );
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.activeMonster.setTextObjects(
+        this.hungerText,
+        this.happinessText,
+        this.energyText,
+        this.lifeSpanText,
+        this.hygieneText,
+        this.diseaseText
+      );
+    }
     this.inventoryWindow.setVisible(false);
   }
   createInventoryWindow() {
@@ -179,61 +194,55 @@ class GameScene extends Phaser.Scene {
   }
 
   addMonsterToScene() {
-    this.monster.sprite = this.add.image(400, 300, `${this.monster.type}Sprite`);
-    this.monster.sprite.setScale(0.5);
+    // Check if monsterInstance exists before accessing its properties
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.activeMonster.sprite = this.add.image(400, 300, `${this.activeMonster.type}Sprite`);
+      this.activeMonster.sprite.setScale(0.5);
+    }
   }
 
   setupTextObjects() {
-    // Initialize text objects for monster stats
-    this.hungerText = this.add.text(16, 56, "Hunger: " + this.monster.hunger, {
-      fontSize: "16px",
-      fill: "#FFF",
-    });
-    this.happinessText = this.add.text(
-      16,
-      76,
-      "Happiness: " + this.monster.happiness,
-      { fontSize: "16px", fill: "#FFF" }
-    );
-    this.energyText = this.add.text(16, 96, "Energy: " + this.monster.energy, {
-      fontSize: "16px",
-      fill: "#FFF",
-    });
-    this.hygieneTextText = this.add.text(
-      16,
-      116,
-      "Hygiene: " + this.monster.hygiene,
-      { fontSize: "16px", fill: "#FFF" }
-    );
-    this.lifeSpanText = this.add.text(
-      16,
-      136,
-      "Life Span: " + this.monster.lifeSpan,
-      { fontSize: "16px", fill: "#FFF" }
-    );
-    this.diseaseText = this.add.text(16, 176, "Diseases: None", {
-      // Add a new text object for diseases
-      fontSize: "16px",
-      fill: "#FFF",
-    });
-
-    // Associate the text objects with the monster instance
-    this.monster.setTextObjects(
-      this.hungerText,
-      this.happinessText,
-      this.energyText,
-      this.lifeSpanText,
-      this.hygieneText,
-      this.diseaseText
-    );
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      // Initialize text objects for monster stats
+      this.hungerText = this.add.text(16, 56, "Hunger: " + this.activeMonster.hunger, {
+        fontSize: "16px",
+        fill: "#FFF",
+      });
+      this.happinessText = this.add.text(
+        16,
+        76,
+        "Happiness: " + this.activeMonster.happiness,
+        { fontSize: "16px", fill: "#FFF" }
+      );
+      this.energyText = this.add.text(16, 96, "Energy: " + this.activeMonster.energy, {
+        fontSize: "16px",
+        fill: "#FFF",
+      });
+      this.hygieneTextText = this.add.text(
+        16,
+        116,
+        "Hygiene: " + this.activeMonster.hygiene,
+        { fontSize: "16px", fill: "#FFF" }
+      );
+      this.lifeSpanText = this.add.text(
+        16,
+        136,
+        "Life Span: " + this.activeMonster.lifeSpan,
+        { fontSize: "16px", fill: "#FFF" }
+      );
+      this.diseaseText = this.add.text(16, 176, "Diseases: None", {
+        fontSize: "16px",
+        fill: "#FFF",
+      });
+    }
   }
 
   createDropdownMenu() {
     // Create dropdown menu with game actions
     this.dropdownMenu = new DropdownMenu(this, [
       { text: "Feed", onClick: () => this.toggleInventory() },
-      { text: "Play", onClick: () => this.monster.play() },
-      { text: "Sleep", onClick: () => this.monster.sleep() },
+      { text: "Play", onClick: () => this.activeMonster && !this.activeMonster.isFrozen && this.activeMonster.play() },
+      { text: "Sleep", onClick: () => this.activeMonster && !this.activeMonster.isFrozen && this.activeMonster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
       { text: "Use Item", onClick: () => this.useItem() },
       { text: "Journey", onClick: () => this.startJourney() },
@@ -245,46 +254,51 @@ class GameScene extends Phaser.Scene {
   }
 
   startJourney() {
-    console.log("Journey started!");
-    const journeyDuration = Phaser.Math.Between(5000, 15000); // Random duration between 5 and 15 seconds
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      console.log("Journey started!");
+      const journeyDuration = Phaser.Math.Between(5000, 15000); // Random duration between 5 and 15 seconds
 
-    // Display journey duration to the player
-    const journeyDurationText = this.add.text(
-      16,
-      220,
-      `Journey Time: ${journeyDuration / 1000} seconds`,
-      {
-        fontSize: "16px",
-        fill: "#FFF",
-      }
-    );
+      // Display journey duration to the player
+      const journeyDurationText = this.add.text(
+        16,
+        220,
+        `Journey Time: ${journeyDuration / 1000} seconds`,
+        {
+          fontSize: "16px",
+          fill: "#FFF",
+        }
+      );
 
-    // Hide the monster sprite
-    this.monster.sprite.setVisible(false);
+      // Hide the monster sprite
+      this.activeMonster.sprite.setVisible(false);
 
-    // Disable dropdown menu during the journey
-    this.dropdownMenu.disableMenu();
+      // Disable dropdown menu during the journey
+      this.dropdownMenu.disableMenu();
 
-    // Set a timer to bring the monster back and reward coins
-    this.time.delayedCall(journeyDuration, () => {
-      this.monster.sprite.setVisible(true); // Show monster again
-      const earnedCoins = Phaser.Math.Between(10, 50); // Random coin reward
-      this.playerCoins += earnedCoins;
-      this.coinsText.setText("Coins: " + this.playerCoins);
-      console.log(`Journey complete! You earned ${earnedCoins} coins.`);
+      // Set a timer to bring the monster back and reward coins
+      this.time.delayedCall(journeyDuration, () => {
+        this.activeMonster.sprite.setVisible(true); // Show monster again
+        const earnedCoins = Phaser.Math.Between(10, 50); // Random coin reward
+        this.playerCoins += earnedCoins;
+        this.coinsText.setText("Coins: " + this.playerCoins);
+        console.log(`Journey complete! You earned ${earnedCoins} coins.`);
 
-      // Re-enable dropdown menu after journey
-      this.dropdownMenu.enableMenu();
+        // Re-enable dropdown menu after journey
+        this.dropdownMenu.enableMenu();
 
-      // Remove journey duration text
-      journeyDurationText.destroy();
+        // Remove journey duration text
+        journeyDurationText.destroy();
 
-      // Apply a random disease
-      this.monster.applyRandomDisease(); // Apply random disease to the monster
-    });
+        // Apply a random disease
+        this.activeMonster.applyRandomDisease(); // Apply random disease to the monster
+      });
+    } else {
+      console.log("No active monster to send on a journey.");
+    }
   }
+
   goToFreezer() {
-    this.scene.start('FreezerScene');
+    this.scene.start('FreezerScene', { player: this.player });
   }
 
   goToMonsterPortal() {
@@ -304,19 +318,23 @@ class GameScene extends Phaser.Scene {
   }
 
   setupMovement() {
-    // Timer to change direction every 2 seconds
-    this.time.addEvent({
-      delay: 2000,
-      callback: this.monster.moveRandomly,
-      callbackScope: this.monster,
-      loop: true,
-    });
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      // Timer to change direction every 2 seconds
+      this.time.addEvent({
+        delay: 2000,
+        callback: this.activeMonster.moveRandomly,
+        callbackScope: this.activeMonster,
+        loop: true,
+      });
+    }
   }
 
   update(time, delta) {
-    // Call updatePosition to move the monster each frame
-    this.monster.updatePosition(delta);
-    this.monster.updateDisplay(); // Refresh the display of monster properties
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      // Call updatePosition to move the monster each frame
+      this.activeMonster.updatePosition(delta);
+      this.activeMonster.updateDisplay(); // Refresh the display of monster properties
+    }
   }
 
   goToMarket() {
@@ -333,17 +351,17 @@ class GameScene extends Phaser.Scene {
 
   // Method to use an item from inventory
   useItem() {
-    if (this.inventory.length > 0) {
+    if (this.inventory.length > 0 && this.activeMonster && !this.activeMonster.isFrozen) {
       const item = this.inventory.pop(); // Remove the last item from inventory
       // Apply item effects to monster stats
       if (item === "apple") {
-        this.monster.updateStat("hunger", -20);
+        this.activeMonster.updateStat("hunger", -20);
       } else if (item === "toy") {
-        this.monster.updateStat("happiness", 30);
+        this.activeMonster.updateStat("happiness", 30);
       }
-      this.monster.updateDisplay(); // Update display after using item
+      this.activeMonster.updateDisplay(); // Update display after using item
     } else {
-      alert("Inventory is empty!");
+      alert("Inventory is empty or no active monster available!");
     }
   }
 }

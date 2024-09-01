@@ -4,23 +4,29 @@ import Monsters from './Monsters.js'; // Import the new Monsters object
 
 class Monster {
     constructor(scene, x, y, type, name = 'unnamed monster') {
+      if (!Monsters[type]) {
+        console.error(`Monster type "${type}" is not defined in Monsters.`);
+        return;
+      }
       console.log("monsters", Monsters[type].spriteKey)
       const monsterConfig = Monsters[type]; // Get the specific monster configuration
 
       this.scene = scene;
-      this.sprite = scene.add.image(x, y, Monsters[type].spriteKey); // Use the sprite key from Monsters object
-      //   this.sprite.setCollideWorldBounds(true); // Prevent monster from moving out of bounds
+      this.sprite = scene.add.image(x, y, monsterConfig.spriteKey); // Use the sprite key from Monsters object
       this.name = name
       this.type = type
   
       // Initialize monster properties
-      const { hunger, happiness, energy, hygiene, lifeSpan } = Monsters[type].initialStats;
+      const { hunger, happiness, energy, hygiene, lifeSpan } = monsterConfig.initialStats;
 
       this.hunger = hunger;
       this.happiness = happiness;
       this.energy = energy;
       this.hygiene = hygiene;
       this.lifeSpan = lifeSpan;
+
+      // New property to track if the monster is frozen
+      this.isFrozen = false;
 
       // Store the current movement direction and speed
       this.movementSpeed = 50; // Pixels per second
@@ -37,7 +43,7 @@ class Monster {
   
       // New properties
       this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
-      this.favoriteFood = Monsters[type].favoriteFood; // Example favorite food
+      this.favoriteFood = monsterConfig.favoriteFood; // Example favorite food
       this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
       this.diseases = []; // Add diseases array
   
@@ -53,8 +59,6 @@ class Monster {
       this.updateMood = this.updateMood.bind(this);
       this.decayNeeds = this.decayNeeds.bind(this);
       this.decreaseLifeSpan = this.decreaseLifeSpan.bind(this);
-      
-      // Bind methods
       this.moveRandomly = this.moveRandomly.bind(this);
       this.updatePosition = this.updatePosition.bind(this);
       
@@ -84,12 +88,25 @@ class Monster {
       callback: () => this.decreaseLifeSpan(),
       loop: true,
     });
-
     
 }
-  
+  // New method to freeze the monster
+  freeze() {
+    this.isFrozen = true;
+    this.sprite.setVisible(false); // Hide sprite when frozen
+    console.log(`${this.name} is now frozen.`);
+  }
+
+  // New method to unfreeze the monster
+  unfreeze() {
+    this.isFrozen = false;
+    this.sprite.setVisible(true); // Show sprite when unfrozen
+    console.log(`${this.name} is now unfrozen.`);
+  }
     // Method to decay needs over time
     decayNeeds() {
+      if (this.isFrozen) return; // Do nothing if frozen
+
       this.updateStat('hunger', -this.DECAY_RATE);
       this.updateStat('thirst', -this.DECAY_RATE);
       this.updateStat('energy', -this.DECAY_RATE);
@@ -98,11 +115,11 @@ class Monster {
       this.updateMood(); // Update mood based on new stats
       this.updateDisplay(); // Update the UI display
     }
-
-    
     // Method to add a disease to the monster
     
     applyRandomDisease() {
+      if (this.isFrozen) return; // Do not apply diseases if frozen
+
         const diseaseNames = Object.keys(Diseases);
         const randomDisease = Phaser.Utils.Array.GetRandom(diseaseNames);
         this.applyDisease(randomDisease);
@@ -162,6 +179,8 @@ class Monster {
     }
   
     decreaseLifeSpan() {
+      if (this.isFrozen) return; // Do nothing if frozen
+
         const decayAmount = (this.hunger > 80 || this.energy < 20) ? 0.2 : 0.1;
         this.lifeSpan = Math.max(0, this.lifeSpan - decayAmount);
     
@@ -273,6 +292,7 @@ class Monster {
 
     // Method to update position
   updatePosition(delta) {
+    if (this.isFrozen || !this.sprite) return; // Do nothing if frozen
     if (!this.sprite) return;
 
     // Calculate new position based on speed and direction

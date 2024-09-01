@@ -23,6 +23,9 @@ class PlayerSetupScene extends Phaser.Scene {
     // Initialize player instance
     this.player = new Player("", ""); // Initialize with empty names, will be set by input fields
 
+    // Set the scene context for the player instance
+    this.player.setScene(this);
+
     // Add instructions text
     this.add
       .text(400, 100, "Set up your player and ranch", {
