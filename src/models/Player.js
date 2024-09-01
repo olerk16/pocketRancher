@@ -1,6 +1,6 @@
 // src/models/Player.js
 class Player {
-  constructor(name, ranchName, coins = 1000, inventory = [], ranchLocation = "grassLand") {
+  constructor(name, ranchName, coins = 1000, inventory = [], monsters = [], ranchLocation = "grassLand") {
     this.name = name;
     this.ranchName = ranchName;
     this.coins = coins;
@@ -15,6 +15,10 @@ class Player {
       name: monsterName,
     };
     this.monsters.push(monster);
+  }
+
+  addItemToInventory(item) {
+    this.inventory.push(item);
   }
 
   updatePlayerName(name) {

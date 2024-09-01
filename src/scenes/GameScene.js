@@ -21,9 +21,9 @@ class GameScene extends Phaser.Scene {
     this.inventory = this.player.inventory;
     this.ranchLocation = this.player.ranchLocation;
     this.monsterName = this.player.monsters[0].name; // Assuming there's at least one monster
+    this.monsterType = this.player.monsters[0].type;
     
    // Select the player's monster and Initialize
-   this.monsterType = this.player.monsters[0].type;
    this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName)
   }
 
@@ -322,14 +322,8 @@ class GameScene extends Phaser.Scene {
   goToMarket() {
     // Switch to the market scene
     this.scene.start("MarketBazaarScene", {
-      inventory: this.inventory,
-      playerCoins: this.playerCoins,
-      playerName: this.playerName,
-      ranchName: this.ranchName,
-      selectedMonster: this.monster, // Pass the monster if needed
-      monsterType: this.monsterType,
-      ranchLocation: this.ranchLocation,
-    }); // Switch to the market scene
+      player: this.player,  // Pass the player object directly
+    });
   }
 
   // Phaser method that is called when the scene is stopped
