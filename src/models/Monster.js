@@ -4,11 +4,16 @@ import Monsters from './Monsters.js'; // Import the new Monsters object
 
 class Monster {
     constructor(scene, x, y, type, name = 'unnamed monster') {
+      if (!scene || !scene.add) {
+        console.error('Invalid scene context passed to Monster constructor.');
+        return;
+      }
+
       if (!Monsters[type]) {
         console.error(`Monster type "${type}" is not defined in Monsters.`);
         return;
       }
-      console.log("monsters", Monsters[type].spriteKey)
+
       const monsterConfig = Monsters[type]; // Get the specific monster configuration
 
       this.scene = scene;
@@ -45,7 +50,8 @@ class Monster {
       this.mood = 'neutral'; // Possible moods: happy, sad, angry, tired, dirty
       this.favoriteFood = monsterConfig.favoriteFood; // Example favorite food
       this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
-      this.diseases = []; // Add diseases array
+      this.diseases = []; // Ensure diseases is initialized as an empty array
+
   
       // Text objects will be initialized in GameScene and passed here
       this.hungerText = null;
@@ -53,7 +59,9 @@ class Monster {
       this.energyText = null;
       this.lifeSpanText = null;
       this.hygieneText = null;
-      this.diseaseText = null;
+      this.diseaseText = null; // Initialize disease text object reference
+
+
       
       // Bind methods
       this.updateMood = this.updateMood.bind(this);
@@ -61,6 +69,9 @@ class Monster {
       this.decreaseLifeSpan = this.decreaseLifeSpan.bind(this);
       this.moveRandomly = this.moveRandomly.bind(this);
       this.updatePosition = this.updatePosition.bind(this);
+      this.applyRandomDisease = this.applyRandomDisease.bind(this);
+      this.applyDisease = this.applyDisease.bind(this);
+      this.cureDisease = this.cureDisease.bind(this);
       
       // Start the timers
       this.setupTimers();
@@ -111,6 +122,7 @@ class Monster {
       this.updateStat('thirst', -this.DECAY_RATE);
       this.updateStat('energy', -this.DECAY_RATE);
       this.updateStat('hygiene', -this.DECAY_RATE);
+      this.updateStat('happiness', -this.DECAY_RATE);
   
       this.updateMood(); // Update mood based on new stats
       this.updateDisplay(); // Update the UI display
@@ -125,26 +137,34 @@ class Monster {
         this.applyDisease(randomDisease);
     }
 
+    // Method to apply a specific disease by name
     applyDisease(diseaseName) {
-        const disease = Diseases[diseaseName];
-        if (disease) {
-          this.diseases.push(disease);
-          console.log(`${this.name} has contracted ${disease.name}!`);
+      const disease = Diseases[diseaseName]; // Get disease details from the Diseases object
+      if (disease) {
+        this.diseases.push(disease); // Add the disease to the monster's list of diseases
+        console.log(`${this.name} has contracted ${disease.name}!`);
     
-          // Apply disease effects
-          Object.keys(disease.effects).forEach((stat) => {
-            this.updateStat(stat, disease.effects[stat]);
-          });
+        // Apply the disease effects to the monster's stats
+        Object.keys(disease.effects).forEach((stat) => {
+          this.updateStat(stat, disease.effects[stat]);
+        });
     
-          // Cure disease after its duration
-          this.scene.time.delayedCall(disease.duration, () => this.cureDisease(diseaseName), [], this);
-        }
+        // Update the display to reflect the new disease
+        this.updateDisplay();
+    
+        // Schedule curing the disease after its duration
+        this.scene.time.delayedCall(disease.duration, () => this.cureDisease(diseaseName), [], this);
+      } else {
+        console.error(`Disease "${diseaseName}" not found.`);
       }
+    }
     
     cureDisease(diseaseName) {
         this.diseases = this.diseases.filter(disease => disease.name !== diseaseName);
         console.log(`${this.name} has been cured of ${diseaseName}!`);
         // Additional logic for restoring stats or handling cured state
+        // Update the display to reflect the cured disease
+        this.updateDisplay();
       }
   
     // Method to update mood based on current needs
@@ -165,13 +185,27 @@ class Monster {
       }
   
     // Method to set text objects
-    setTextObjects(hungerText, happinessText, energyText, lifeSpanText, hygieneText) {
+    setTextObjects(hungerText, happinessText, energyText, lifeSpanText, hygieneText, diseaseText) {
       this.hungerText = hungerText;
       this.happinessText = happinessText;
       this.energyText = energyText;
       this.lifeSpanText = lifeSpanText;
       this.hygieneText = hygieneText;
+      this.diseaseText = diseaseText; // Assign disease text object
+
+      // Immediately update the disease display text
+    this.updateDiseaseDisplay();
     }
+
+    // Method to update disease display text
+    updateDiseaseDisplay() {
+      if (this.diseaseText) {
+        const diseasesList = this.diseases.length > 0 
+          ? this.diseases.map(disease => disease.name).join(', ') 
+          : '';
+        this.diseaseText.setText('Diseases: ' + diseasesList);
+      }
+  }
   
     update() {
       this.updateLifeSpan();
@@ -266,9 +300,10 @@ class Monster {
       if (this.lifeSpanText) this.lifeSpanText.setText('Life Span: ' + this.lifeSpan.toFixed(1));
       if (this.hygieneText) this.hygieneText.setText('Hygiene: ' + this.hygiene);
       if (this.moodText) this.moodText.setText('Mood: ' + this.mood);
-         // Update display for diseases
-      if (this.diseaseText) this.diseaseText.setText('Diseases: ' + (this.diseases.length > 0 ? this.diseases.map(disease => disease.name).join(', ') : 'None'));
-    }
+      // Update the display for diseases
+      // Call updateDiseaseDisplay to update diseases text
+      this.updateDiseaseDisplay();
+}
   
     adjustHappinessByLocation(ranchLocation) {
         console.log("Adjusting happiness based on location");
