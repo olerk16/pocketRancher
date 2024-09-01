@@ -8,6 +8,7 @@ import MapScene from "./scenes/MapScene.js";
 import MonsterCemeteryScene from "./scenes/MonsterCemeteryScene.js";
 import BattleScene from "./scenes/BattleScene.js";
 import MonsterPortalScene from "./scenes/MonsterPortalScene.js";
+import FreezerScene from "./scenes/FreezerScene.js";
 
 
 // Define the Phaser game configuration
@@ -24,7 +25,8 @@ const config = {
     MapScene,
     MonsterCemeteryScene,
     BattleScene,
-    MonsterPortalScene
+    MonsterPortalScene,
+    FreezerScene
   ], // Include all scenes
   physics: {
     default: "arcade",
