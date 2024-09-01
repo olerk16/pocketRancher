@@ -8,13 +8,12 @@ class MarketBazaarScene extends Phaser.Scene {
     super({ key: "MarketBazaarScene" });
   }
   init(data) {
-    this.playerName = data.playerName;
-    this.ranchName = data.ranchName;
-    this.monster = data.selectedMonster; // Use the passed monster instance
-    this.monsterType = data.monsterType; // Use the passed monster type
-    this.playerCoins = data.playerCoins;
-    this.inventory = data.inventory;
-    this.ranchLocation = data.ranchLocation;
+    // Receive the player object from the previous scene
+    this.player = data.player;
+
+    // Use player data to initialize the scene
+    this.playerCoins = this.player.coins;
+    this.inventory = this.player.inventory;
   }
   preload() {
     // // Load images for the market items
@@ -23,7 +22,6 @@ class MarketBazaarScene extends Phaser.Scene {
   }
 
   create() {
-    
     // Add the background image to the game
     this.add.image(400, 300, "bazaar");
 
@@ -49,14 +47,8 @@ class MarketBazaarScene extends Phaser.Scene {
     // Use createButton utility function to create a back button
     createButton(this, 700, 50, "Back", () => {
       this.scene.start("GameScene", {
-        inventory: this.inventory,
-        playerCoins: this.playerCoins,
-        playerName: this.playerName,
-        ranchName: this.ranchName,
-        selectedMonster: this.monster, // Pass the monster if needed
-        monsterType: this.monsterType,
-        ranchLocation: this.ranchLocation,
-      }); // Switch back to the game scene
+        player: this.player, // Pass the player object back to the GameScene
+      }); 
     });
   }
   createSceneTitle(){
@@ -170,12 +162,11 @@ class MarketBazaarScene extends Phaser.Scene {
       this.notificationText.destroy();
     }
 
-    if (this.playerCoins >= item.price) {
-      this.playerCoins -= item.price;
-      this.coinsText.setText("Coins: " + this.playerCoins);
+    if (this.player.coins >= item.price) {
+      this.player.coins -= item.price; // Deduct coins directly from the player object
+      this.player.addItemToInventory(item); // Use player's method to add the item to inventory
 
-      // Add the item to the player's inventory
-      this.inventory.push(item);
+      this.coinsText.setText("Coins: " + this.player.coins);// Update the display
 
       // Notify the player of the purchase
       this.notificationText = this.add
