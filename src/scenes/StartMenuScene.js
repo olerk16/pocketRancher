@@ -32,6 +32,7 @@ class StartMenuScene extends Phaser.Scene {
     this.load.image("flowers", "assets/images/items/flowers.webp");
     this.load.image("medicBag", "assets/images/items/medicBag.webp");
     this.load.image("bazaar", "assets/images/backGrounds/bazaar.webp");
+    this.load.image("freezer", "assets/images/backGrounds/freezer.webp");
   }
 }
 

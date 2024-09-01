@@ -243,7 +243,8 @@ class GameScene extends Phaser.Scene {
       { text: "Journey", onClick: () => this.startJourney() },
       { text: "View Map", onClick: () => this.viewMap() },
       { text: "Cemetery", onClick: () => this.viewCemetery() },
-      { text: "Monster Portal", onClick: () => this.goToMonsterPortal() }, 
+      { text: "Monster Portal", onClick: () => this.goToMonsterPortal() },
+      { text: "Monster Freezer", onClick: () => this.goToFreezer() },
     ]);
   }
 
@@ -285,6 +286,9 @@ class GameScene extends Phaser.Scene {
       // Apply a random disease
       this.monster.applyRandomDisease(); // Apply random disease to the monster
     });
+  }
+  goToFreezer() {
+    this.scene.start('FreezerScene');
   }
 
   goToMonsterPortal() {
