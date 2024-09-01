@@ -11,26 +11,20 @@ class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    console.log("monster type gamescene", data.monsterType)
-    // Receive data passed from the PlayerSetupScene
+    // Receive the player object from the previous scene
     this.player = data.player;
-    this.playerName = data.playerName;
-    this.ranchName = data.ranchName;
-    this.playerCoins = data.playerCoins;
-    this.inventory = data.inventory;
-    this.ranchLocation = data.ranchLocation;
-    this.monsterName = data.monsterName;
 
-    // Select a random monster type
-    const monsterTypes = Object.keys(Monsters);
-    this.monsterType = Phaser.Utils.Array.GetRandom(monsterTypes); // Get a random monster type from the Monsters object
-
-
-
-        // Initialize Monster in GameScene
-        this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName);
-        console.log(this.player.monster);
-
+    // Use player data to initialize the scene
+    this.playerName = this.player.name;
+    this.ranchName = this.player.ranchName;
+    this.playerCoins = this.player.coins;
+    this.inventory = this.player.inventory;
+    this.ranchLocation = this.player.ranchLocation;
+    this.monsterName = this.player.monsters[0].name; // Assuming there's at least one monster
+    
+   // Select the player's monster and Initialize
+   this.monsterType = this.player.monsters[0].type;
+   this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName)
   }
 
   preload() {

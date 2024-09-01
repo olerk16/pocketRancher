@@ -1,52 +1,35 @@
+// src/models/Player.js
 class Player {
-  constructor(name, ranchName, coins, inventory, ranchLocation) {
+  constructor(name, ranchName, coins = 1000, inventory = [], ranchLocation = "grassLand") {
     this.name = name;
     this.ranchName = ranchName;
     this.coins = coins;
-    this.inventory = inventory || []; // Initialize with empty array if not provided
+    this.inventory = inventory;
     this.ranchLocation = ranchLocation;
-    this.monster = null; // Player starts with no monster
+    this.monsters = []; // Initialize an empty array for monsters
   }
 
-  addCoins(amount) {
-    this.coins += amount;
+  addMonster(monsterType, monsterName) {
+    const monster = {
+      type: monsterType,
+      name: monsterName,
+    };
+    this.monsters.push(monster);
   }
 
-  spendCoins(amount) {
-    if (this.coins >= amount) {
-      this.coins -= amount;
-      return true;
-    }
-    return false;
+  updatePlayerName(name) {
+    this.name = name;
   }
 
-  addItem(item) {
-    this.inventory.push(item);
+  updateRanchName(ranchName) {
+    this.ranchName = ranchName;
   }
 
-  removeItem(itemName) {
-    const index = this.inventory.findIndex(item => item.name === itemName);
-    if (index !== -1) {
-      return this.inventory.splice(index, 1)[0]; // Remove and return the item
-    }
-    return null;
-  }
-
-  setRanchLocation(location) {
+  updateRanchLocation(location) {
     this.ranchLocation = location;
   }
 
-  setMonster(monster) {
-    this.monster = monster;
-  }
-
-  getMonster() {
-    return this.monster;
-  }
-
-  getInventory() {
-    return this.inventory;
-  }
+  // Add more methods as needed to handle player actions, inventory management, etc.
 }
 
 export default Player;

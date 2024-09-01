@@ -17,15 +17,15 @@ class PlayerSetupScene extends Phaser.Scene {
     // const inventory = []; // Initial empty inventory
     // const ranchLocation = "grassLand"; // Default ranch location
 
-    // Store player inputs
-    this.player = null;
-    this.playerName = "";
-    this.ranchName = "";
-    this.playerCoins = 100;
-    this.inventory = [];
-    this.selectedMonsterType = null;
-    this.ranchLocation = null // default location
-    this.monsterName = "";
+    // // Store player inputs
+    // this.player = null;
+    // this.playerName = "";
+    // this.ranchName = "";
+    // this.playerCoins = 100;
+    // this.inventory = [];
+    // this.selectedMonsterType = null;
+    // this.ranchLocation = null // default location
+    // this.monsterName = "";
   }
 
   preload() {
@@ -36,9 +36,9 @@ class PlayerSetupScene extends Phaser.Scene {
   }
 
   create() {
+        // Initialize player instance
+        this.player = new Player("", ""); // Initialize with empty names, will be set by input fields
 
-    // Create a Player instance
-    // this.player = new Player(playerName, ranchName, playerCoins, inventory, ranchLocation);
     // Add instructions text
     this.add
       .text(400, 100, "Set up your player and ranch", {
@@ -49,14 +49,15 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Create input fields using the new InputComponent
     this.setupInputFields();
-    // this.createMonsterSelection();
-    this.createDropdownMenu()
 
     // Automatically assign a random monster
     this.assignRandomMonster();
-    
+
     // Create a button to confirm the setup and start the game
     createButton(this, 400, 400, "Start Game", () => this.startGame());
+
+    // Create dropdown menu for ranch location selection
+    this.createDropdownMenu();
   }
 
   setupInputFields() {
@@ -66,13 +67,13 @@ class PlayerSetupScene extends Phaser.Scene {
         placeholder: "Enter your name",
         top: "150px",
         left: "400px",
-        onChange: (value) => (this.playerName = value), // Update player name
+        onChange: (value) => this.player.updatePlayerName(value), // Update player name
       },
       {
         placeholder: "Enter your ranch name",
         top: "200px",
         left: "400px",
-        onChange: (value) => (this.ranchName = value), // Update ranch name
+        onChange: (value) => this.player.updateRanchName(value), // Update ranch name
       },
       {
         placeholder: "Enter your monster's name",
@@ -109,9 +110,8 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Handle selection change
     locationDropdown.addEventListener('change', (event) => {
-      this.ranchLocation = event.target.value;
-    //   this.updateBackgroundImage(); // Update the background image based on the selection
-      console.log(`Selected Ranch Location: ${this.ranchLocation}`);
+      this.player.updateRanchLocation(event.target.value); // Update ranch location in the Player class
+      console.log(`Selected Ranch Location: ${this.player.ranchLocation}`);
     });
 
     // Append the dropdown to the body
@@ -127,35 +127,25 @@ class PlayerSetupScene extends Phaser.Scene {
     // Get a random monster from the Monsters object
     const monsterTypes = Object.keys(Monsters);
     this.selectedMonsterType = Phaser.Utils.Array.GetRandom(monsterTypes);
-
     console.log(`Assigned Random Monster: ${this.selectedMonsterType}`);
-
   }
 
   
 
+  
   startGame() {
-    // init the player 
-    this.player = new Player(this.playerName, this.ranchName);
-    this.player.addMonster(this.selectedMonsterType);
-    if (this.playerName && this.ranchName && this.selectedMonsterType && this.monsterName) {
+    if (this.player.name && this.player.ranchName && this.selectedMonsterType && this.monsterName) {
+      this.player.addMonster(this.selectedMonsterType, this.monsterName); // Add the monster to the player
+
       console.log(
-        `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.ranchLocation}`
+        `Player Name: ${this.player.name}, Ranch Name: ${this.player.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.player.ranchLocation}`
       );
-      // Store these details in a global game object or pass them to the next scene
-      this.scene.start("GameScene", {
-        player: this.player,
-        playerName: this.playerName,
-        ranchName: this.ranchName,
-        monsterType: this.selectedMonsterType, // Pass the monster type
-        monsterName: this.monsterName,
-        playerCoins: this.playerCoins,
-        inventory: this.inventory,
-        ranchLocation: this.ranchLocation // pass ranch location
-      });
-    } else {
-      alert("Please enter your name, ranch name, and select a monster.");
-    }
+
+     // Pass only the player object to the next scene
+    this.scene.start("GameScene", { player: this.player });
+  } else {
+    alert("Please enter your name, ranch name, and select a monster.");
+  }
   }
 }
 
