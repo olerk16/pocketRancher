@@ -4,10 +4,18 @@ import { createButton } from "../utils/uiUtils.js"; // Import the utility functi
 import Monster from "../models/Monster.js";
 import Monsters from "../models/Monsters.js"; // Import the Monsters object
 import Player from "../models/Player.js";
+import InputComponent from "../components/InputComponent.js";
 
 class PlayerSetupScene extends Phaser.Scene {
   constructor() {
     super({ key: "PlayerSetupScene" });
+
+    // // Collect player data
+    // const playerName = "Player1"; // Example player name, replace with actual input
+    // const ranchName = "Sunny Ranch"; // Example ranch name
+    // const playerCoins = 1000; // Initial coins
+    // const inventory = []; // Initial empty inventory
+    // const ranchLocation = "grassLand"; // Default ranch location
 
     // Store player inputs
     this.player = null;
@@ -28,6 +36,9 @@ class PlayerSetupScene extends Phaser.Scene {
   }
 
   create() {
+
+    // Create a Player instance
+    // this.player = new Player(playerName, ranchName, playerCoins, inventory, ranchLocation);
     // Add instructions text
     this.add
       .text(400, 100, "Set up your player and ranch", {
@@ -36,8 +47,8 @@ class PlayerSetupScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    // Create input fields and buttons using DOM elements
-    this.createInputFields();
+    // Create input fields using the new InputComponent
+    this.setupInputFields();
     // this.createMonsterSelection();
     this.createDropdownMenu()
 
@@ -48,43 +59,28 @@ class PlayerSetupScene extends Phaser.Scene {
     createButton(this, 400, 400, "Start Game", () => this.startGame());
   }
 
-  createInputFields() {
-    // Create input field for player name
-    const playerNameInput = document.createElement("input");
-    playerNameInput.type = "text";
-    playerNameInput.placeholder = "Enter your name";
-    playerNameInput.style.position = "absolute";
-    playerNameInput.style.top = "150px";
-    playerNameInput.style.left = "400px";
-    playerNameInput.style.transform = "translate(-50%, -50%)";
-    playerNameInput.style.fontSize = "16px";
-    document.body.appendChild(playerNameInput);
-
-    // Create input field for ranch name
-    const ranchNameInput = document.createElement("input");
-    ranchNameInput.type = "text";
-    ranchNameInput.placeholder = "Enter your ranch name";
-    ranchNameInput.style.position = "absolute";
-    ranchNameInput.style.top = "200px";
-    ranchNameInput.style.left = "400px";
-    ranchNameInput.style.transform = "translate(-50%, -50%)";
-    ranchNameInput.style.fontSize = "16px";
-    document.body.appendChild(ranchNameInput);
-
-    // Update player and ranch names on input change
-    playerNameInput.addEventListener("input", (event) => {
-      this.playerName = event.target.value;
-    });
-
-    ranchNameInput.addEventListener("input", (event) => {
-      this.ranchName = event.target.value;
-    });
-
-    // Remove input fields when the scene shuts down
-    this.events.on("shutdown", () => {
-      playerNameInput.remove();
-      ranchNameInput.remove();
-    });
+  setupInputFields() {
+    // Use InputComponent to create player and ranch name input fields
+    this.inputComponent = new InputComponent(this, [
+      {
+        placeholder: "Enter your name",
+        top: "150px",
+        left: "400px",
+        onChange: (value) => (this.playerName = value), // Update player name
+      },
+      {
+        placeholder: "Enter your ranch name",
+        top: "200px",
+        left: "400px",
+        onChange: (value) => (this.ranchName = value), // Update ranch name
+      },
+      {
+        placeholder: "Enter your monster's name",
+        top: "400px",
+        left: "400px",
+        onChange: (value) => (this.monsterName = value), // Update monster name
+      },
+    ]);
   }
 
   createDropdownMenu() {
@@ -134,37 +130,9 @@ class PlayerSetupScene extends Phaser.Scene {
 
     console.log(`Assigned Random Monster: ${this.selectedMonsterType}`);
 
-    // Create input field for monster name after assigning the monster
-    this.createMonsterNameInput();
   }
 
-  createMonsterNameInput() {
-    // Remove any existing monster name input field
-    if (this.monsterNameInput) {
-      this.monsterNameInput.remove();
-    }
-
-    // Create input field for monster name
-    this.monsterNameInput = document.createElement("input");
-    this.monsterNameInput.type = "text";
-    this.monsterNameInput.placeholder = "Enter your monster's name";
-    this.monsterNameInput.style.position = "absolute";
-    this.monsterNameInput.style.top = "400px";
-    this.monsterNameInput.style.left = "400px";
-    this.monsterNameInput.style.transform = "translate(-50%, -50%)";
-    this.monsterNameInput.style.fontSize = "16px";
-    document.body.appendChild(this.monsterNameInput);
-
-    // Update monster name on input change
-    this.monsterNameInput.addEventListener("input", (event) => {
-      this.monsterName = event.target.value;
-    });
-
-    // Remove input field when the scene shuts down
-    this.events.on("shutdown", () => {
-      this.monsterNameInput.remove();
-    });
-  }
+  
 
   startGame() {
     // init the player 

@@ -1,26 +1,52 @@
 class Player {
-  constructor(name, ranchName) {
+  constructor(name, ranchName, coins, inventory, ranchLocation) {
     this.name = name;
     this.ranchName = ranchName;
-    this.currentMonster = null;
-    this.inventory = [];
-    this.frozenMonsters = [];
-    this.monstersOwned = [];
-    this.strongestMonster = null;
-    this.longestLivedMonster = null;
-    this.combinesMade = 0;
-    this.battlesWon = 0;
-    this.battlesLost = 0;
-    this.monsterDiseases = 0;
+    this.coins = coins;
+    this.inventory = inventory || []; // Initialize with empty array if not provided
+    this.ranchLocation = ranchLocation;
+    this.monster = null; // Player starts with no monster
   }
-  addMonster(monster) {
-    this.currentMonster = monster;
+
+  addCoins(amount) {
+    this.coins += amount;
   }
-  removeMonster() {
-    this.currentMonster = null;
+
+  spendCoins(amount) {
+    if (this.coins >= amount) {
+      this.coins -= amount;
+      return true;
+    }
+    return false;
   }
-  freezeMonster(monster) {
-    this.frozenMonsters.push(monster);
+
+  addItem(item) {
+    this.inventory.push(item);
+  }
+
+  removeItem(itemName) {
+    const index = this.inventory.findIndex(item => item.name === itemName);
+    if (index !== -1) {
+      return this.inventory.splice(index, 1)[0]; // Remove and return the item
+    }
+    return null;
+  }
+
+  setRanchLocation(location) {
+    this.ranchLocation = location;
+  }
+
+  setMonster(monster) {
+    this.monster = monster;
+  }
+
+  getMonster() {
+    return this.monster;
+  }
+
+  getInventory() {
+    return this.inventory;
   }
 }
-export default Player
+
+export default Player;
