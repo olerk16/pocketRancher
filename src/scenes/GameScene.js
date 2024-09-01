@@ -13,6 +13,7 @@ class GameScene extends Phaser.Scene {
   init(data) {
     console.log("monster type gamescene", data.monsterType)
     // Receive data passed from the PlayerSetupScene
+    this.player = data.player;
     this.playerName = data.playerName;
     this.ranchName = data.ranchName;
     this.playerCoins = data.playerCoins;
@@ -28,6 +29,7 @@ class GameScene extends Phaser.Scene {
 
         // Initialize Monster in GameScene
         this.monster = new Monster(this, 400, 300, this.monsterType, this.monsterName);
+        console.log(this.player.monster);
 
   }
 
