@@ -267,7 +267,6 @@ class Monster {
 
     // Method to move randomly
     moveRandomly() {
-        console.log("Monster moving randomly...");
         this.direction.x = Phaser.Math.Between(-1, 1) || 1; // Ensure it's never zero
         this.direction.y = Phaser.Math.Between(-1, 1) || 1; // Ensure it's never zero
       }

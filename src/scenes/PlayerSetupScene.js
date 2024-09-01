@@ -3,12 +3,14 @@
 import { createButton } from "../utils/uiUtils.js"; // Import the utility function
 import Monster from "../models/Monster.js";
 import Monsters from "../models/Monsters.js"; // Import the Monsters object
+import Player from "../models/Player.js";
 
 class PlayerSetupScene extends Phaser.Scene {
   constructor() {
     super({ key: "PlayerSetupScene" });
 
     // Store player inputs
+    this.player = null;
     this.playerName = "";
     this.ranchName = "";
     this.playerCoins = 100;
@@ -41,7 +43,7 @@ class PlayerSetupScene extends Phaser.Scene {
 
     // Automatically assign a random monster
     this.assignRandomMonster();
-
+    
     // Create a button to confirm the setup and start the game
     createButton(this, 400, 400, "Start Game", () => this.startGame());
   }
@@ -165,12 +167,16 @@ class PlayerSetupScene extends Phaser.Scene {
   }
 
   startGame() {
+    // init the player 
+    this.player = new Player(this.playerName, this.ranchName);
+    this.player.addMonster(this.selectedMonsterType);
     if (this.playerName && this.ranchName && this.selectedMonsterType && this.monsterName) {
       console.log(
         `Player Name: ${this.playerName}, Ranch Name: ${this.ranchName}, Monster: ${this.selectedMonsterType}, Location: ${this.ranchLocation}`
       );
       // Store these details in a global game object or pass them to the next scene
       this.scene.start("GameScene", {
+        player: this.player,
         playerName: this.playerName,
         ranchName: this.ranchName,
         monsterType: this.selectedMonsterType, // Pass the monster type

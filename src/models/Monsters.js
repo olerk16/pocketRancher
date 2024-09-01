@@ -23,6 +23,19 @@ const Monsters = {
       },
       spriteKey: "desertCrawlerSprite", // This is the key to load the sprite image in Phaser
     },
+    "coreGolem": {
+      name: "Core Golem",
+      favoriteFood: "rock candy",
+      initialStats: { 
+        hunger: 50, 
+        happiness: 60, 
+        energy: 90, 
+        hygiene: 80, 
+        lifeSpan: 120 
+      },
+      spriteKey: "coreGolemSprite",
+    },
+    
     "crystaloctopus": {
       name: "Crystaloctopus",
       favoriteFood: "rock candy",
