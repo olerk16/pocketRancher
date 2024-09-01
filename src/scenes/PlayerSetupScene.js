@@ -1,5 +1,4 @@
 // src/scenes/PlayerSetupScene.js
-
 import { createButton } from "../utils/uiUtils.js"; // Import the utility function
 import Monster from "../models/Monster.js";
 import Monsters from "../models/Monsters.js"; // Import the Monsters object
