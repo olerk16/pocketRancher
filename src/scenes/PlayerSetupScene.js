@@ -19,6 +19,7 @@ class PlayerSetupScene extends Phaser.Scene {
      Object.values(Monsters).forEach(monster => {
       this.load.image(monster.spriteKey, `assets/images/${monster.spriteKey}.png`);
     });
+    this.load.image('character', `assets/images/trainer_0.png`);
   }
 
   create() {
@@ -41,7 +42,7 @@ class PlayerSetupScene extends Phaser.Scene {
     createButton(this, 400, 400, "Start Game", () => this.startGame());
 
     // Create a dialog component and display instructions
-    this.dialog = new DialogComponent(this, 400, 300, 300, 150, "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.");
+    this.dialog = new DialogComponent(this, 400, 300, 300, 150, "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.", 'character');
     this.dialog.showDialog(); // Show the dialog with the initial message
 
     // Hide the dialog after 5 seconds if needed

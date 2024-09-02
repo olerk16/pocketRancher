@@ -3,6 +3,7 @@
 import { createButton, createImageButton } from "../utils/uiUtils.js"; // Import the utility functions
 import { startJourney } from "../utils/startJourney.js"; // Import the startJourney function
 import DropdownMenu from "../components/DropDownMenu.js"; // Import the DropdownMenu component
+import DisplayStatsComponent from "../components/DisplayStatsComponent.js"; // Import the new component
 import Monster from "../models/Monster.js";
 import Monsters from "../models/Monsters.js"; // Import the Monsters object
 
@@ -12,10 +13,7 @@ class GameScene extends Phaser.Scene {
   }
 
   init(data) {
-    // Receive the player object from the previous scene
     this.player = data.player;
-
-    // Use player data to initialize the scene
     this.playerName = this.player.name;
     this.ranchName = this.player.ranchName;
     this.playerCoins = this.player.coins;
@@ -60,14 +58,17 @@ class GameScene extends Phaser.Scene {
     this.setBackgroundImage();
     this.addPlayerInfo();
     // Only add monster to the scene if it is not frozen
-    if (this.activeMonster && !this.activeMonster.isFrozen) {
-      this.addMonsterToScene();
-      this.setupTextObjects();
-      this.setupMovement();
-    } else {
-      console.log("No active monster to display or monster is frozen.");
-    }
-
+      if (this.activeMonster && !this.activeMonster.isFrozen) {
+        this.addMonsterToScene();
+        this.setupMovement();
+    
+    // Initialize MonsterStatsComponent for displaying stats
+          this.monsterStatsComponent = new DisplayStatsComponent(this, this.activeMonster, this.player.coins, 16, 56);
+        } else {
+          console.log("No active monster to display or monster is frozen.");
+        }
+    
+    
     this.createDropdownMenu();
     this.createInventoryWindow();
 
@@ -76,26 +77,6 @@ class GameScene extends Phaser.Scene {
       this.activeMonster.adjustHappinessByLocation(this.ranchLocation);
     }
 
-    // Player currency
-    this.coinsText = this.add.text(16, 200, "Coins: " + this.playerCoins, {
-      fontSize: "16px",
-      fill: "#FFF",
-    });
-
-    // Associate the text objects with the monster instance
-    // Ensure all text objects, including diseaseText, are correctly associated
-    if (this.activeMonster && !this.activeMonster.isFrozen) {
-      this.setupTextObjects();
-  }
-    // if (this.activeMonster && !this.activeMonster.isFrozen) {
-    //   this.activeMonster.setTextObjects(
-    //     this.hungerText,
-    //     this.happinessText,
-    //     this.energyText,
-    //     this.lifeSpanText,
-    //     this.hygieneText
-    //   );
-    // }
     this.inventoryWindow.setVisible(false);
   }
   createInventoryWindow() {
@@ -204,53 +185,6 @@ class GameScene extends Phaser.Scene {
     }
   }
 
-  setupTextObjects() {
-    console.log("active monster", this.activeMonster)
-    if (this.activeMonster && !this.activeMonster.isFrozen) {
-      // Initialize text objects for monster stats
-      this.hungerText = this.add.text(16, 56, "Hunger: " + this.activeMonster.hunger, {
-        fontSize: "16px",
-        fill: "#FFF",
-      });
-      this.happinessText = this.add.text(
-        16,
-        76,
-        "Happiness: " + this.activeMonster.happiness,
-        { fontSize: "16px", fill: "#FFF" }
-      );
-      this.energyText = this.add.text(16, 96, "Energy: " + this.activeMonster.energy, {
-        fontSize: "16px",
-        fill: "#FFF",
-      });
-      this.hygieneText = this.add.text(
-        16,
-        116,
-        "Hygiene: " + this.activeMonster.hygiene,
-        { fontSize: "16px", fill: "#FFF" }
-      );
-      this.lifeSpanText = this.add.text(
-        16,
-        136,
-        "Life Span: " + this.activeMonster.lifeSpan,
-        { fontSize: "16px", fill: "#FFF" }
-      );
-      this.diseaseText = this.add.text(16, 176, "Diseases: None", {
-          fontSize: "16px",
-          fill: "#FFF",
-      });
-
-  // Associate the text objects with the monster instance
-  this.activeMonster.setTextObjects(
-      this.hungerText,
-      this.happinessText,
-      this.energyText,
-      this.lifeSpanText,
-      this.hygieneText,
-      this.diseaseText // Include the diseaseText
-  );
-    }
-  }
-
   createDropdownMenu() {
     // Create dropdown menu with game actions
     this.dropdownMenu = new DropdownMenu(this, [
@@ -259,7 +193,7 @@ class GameScene extends Phaser.Scene {
       { text: "Sleep", onClick: () => this.activeMonster && !this.activeMonster.isFrozen && this.activeMonster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
       { text: "Use Item", onClick: () => this.useItem() },
-      { text: "Journey", onClick: () => startJourney(this, this.activeMonster, this.dropdownMenu, this.coinsText, this.playerCoins) }, // Updated call to startJourney
+      { text: "Journey", onClick: () => startJourney(this, this.activeMonster, this.dropdownMenu, this.monsterStatsComponent, this.player) }, // Updated call to startJourney
       { text: "View Map", onClick: () => this.viewMap() },
       { text: "Cemetery", onClick: () => this.viewCemetery() },
       { text: "Monster Portal", onClick: () => this.goToMonsterPortal() },
