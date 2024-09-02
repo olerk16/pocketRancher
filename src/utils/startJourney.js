@@ -12,12 +12,12 @@ import Diseases from '../models/Diseases.js'; // Ensure you have the correct pat
  * @param {Object} coinsText - The text object displaying the player's coins.
  * @param {number} playerCoins - The current number of player's coins.
  */
-export function startJourney(scene, activeMonster, dropdownMenu, coinsText, playerCoins) {
+export function startJourney(scene, activeMonster, dropdownMenu, statsComponent, player) {
   console.log('Diseases:', Diseases); // Debug log to check content
 
   if (activeMonster && !activeMonster.isFrozen) {
     console.log("Journey started!");
-    const journeyDuration = Phaser.Math.Between(5000, 15000); // Random duration between 5 and 15 seconds
+    const journeyDuration = Phaser.Math.Between(1000, 5000); // Random duration between 5 and 15 seconds
 
     // Display journey duration to the player
     const journeyDurationText = scene.add.text(
@@ -40,8 +40,13 @@ export function startJourney(scene, activeMonster, dropdownMenu, coinsText, play
     scene.time.delayedCall(journeyDuration, () => {
       activeMonster.sprite.setVisible(true); // Show monster again
       const earnedCoins = Phaser.Math.Between(10, 50); // Random coin reward
-      playerCoins += earnedCoins;
-      coinsText.setText("Coins: " + playerCoins);
+      // Update player's coins using the Player class method
+      player.updateCoins(earnedCoins);
+
+      // Update the displayed coins text using the stats component
+      statsComponent.setCoins(player.coins);
+
+
       console.log(`Journey complete! You earned ${earnedCoins} coins.`);
 
       // Re-enable dropdown menu after journey

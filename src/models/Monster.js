@@ -1,5 +1,6 @@
 import Diseases from './Diseases.js';
 import Monsters from './Monsters.js'; // Import the new Monsters object
+
 // src/models/Monster.js
 
 class Monster {
@@ -36,6 +37,9 @@ class Monster {
       // Store the current movement direction and speed
       this.movementSpeed = 50; // Pixels per second
       this.direction = { x: 1, y: 1 }; // Start moving diagonally
+
+      // Initialize the DisplayStatsComponent reference to null
+      this.displayStatsComponent = null;
   
       // Define thresholds and decay rates
       this.DECAY_RATE = 5; // Rate at which needs decay
@@ -51,6 +55,10 @@ class Monster {
       this.favoriteFood = monsterConfig.favoriteFood; // Example favorite food
       this.statusEffects = []; // List of status effects like diseased, injured, sick, poison
       this.diseases = []; // Ensure diseases is initialized as an empty array
+
+        //   // Initialize DisplayStatsComponent for displaying stats
+        // this.displayStatsComponent = new DisplayStatsComponent(scene, this, 0, 16, 56);
+
 
   
       // Text objects will be initialized in GameScene and passed here
@@ -126,6 +134,7 @@ class Monster {
   
       this.updateMood(); // Update mood based on new stats
       this.updateDisplay(); // Update the UI display
+      this.scene.monsterStatsComponent.updateDisplay();
     }
     // Method to add a disease to the monster
     
@@ -149,8 +158,10 @@ class Monster {
           this.updateStat(stat, disease.effects[stat]);
         });
     
-        // Update the display to reflect the new disease
-        this.updateDisplay();
+        // Call the method to update the display immediately
+        if (this.scene && this.scene.monsterStatsComponent) {
+          this.scene.monsterStatsComponent.updateDisplay();
+      }
     
         // Schedule curing the disease after its duration
         this.scene.time.delayedCall(disease.duration, () => this.cureDisease(diseaseName), [], this);
@@ -192,10 +203,14 @@ class Monster {
       this.lifeSpanText = lifeSpanText;
       this.hygieneText = hygieneText;
       this.diseaseText = diseaseText; // Assign disease text object
-
       // Immediately update the disease display text
     this.updateDiseaseDisplay();
     }
+
+    // Method to associate a DisplayStatsComponent with the monster
+    setDisplayStatsComponent(displayStatsComponent) {
+    this.displayStatsComponent = displayStatsComponent;
+  }
 
     // Method to update disease display text
     updateDiseaseDisplay() {
@@ -209,6 +224,7 @@ class Monster {
   
     update() {
       this.updateLifeSpan();
+      this.scene.monsterStatsComponent.updateDisplay();
       this.updateDisplay();
     }
   
@@ -303,6 +319,12 @@ class Monster {
       // Update the display for diseases
       // Call updateDiseaseDisplay to update diseases text
       this.updateDiseaseDisplay();
+}
+
+updateDisplay() {
+  if (this.displayStatsComponent) {
+    this.displayStatsComponent.updateDisplay(); // Ensure the component reflects the current state
+  }
 }
   
     adjustHappinessByLocation(ranchLocation) {

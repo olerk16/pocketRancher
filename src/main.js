@@ -14,7 +14,7 @@ import FreezerScene from "./scenes/FreezerScene.js";
 // Define the Phaser game configuration
 const config = {
   type: Phaser.AUTO,
-  width: 800,
+  width: 1000,
   height: 600,
   parent: "game-container",
   scene: [
