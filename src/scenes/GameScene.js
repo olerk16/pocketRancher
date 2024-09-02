@@ -157,7 +157,7 @@ class GameScene extends Phaser.Scene {
         30 + i * 55,
         50,
         this.inventory[i].name,
-        () => this.monster.feed(i, slot, this.inventory, this),
+        () => this.activeMonster.feed(i, slot, this.inventory, this),
         50,
         50
       );
