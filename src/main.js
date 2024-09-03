@@ -10,13 +10,17 @@ import BattleScene from "./scenes/BattleScene.js";
 import MonsterPortalScene from "./scenes/MonsterPortalScene.js";
 import FreezerScene from "./scenes/FreezerScene.js";
 
-
 // Define the Phaser game configuration
 const config = {
   type: Phaser.AUTO,
-  width: 1000,
-  height: 600,
-  parent: "game-container",
+  scale: {
+    width: 800,
+    height: 600,
+    parent: "game-container",
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+
   scene: [
     StartMenuScene,
     GameScene,
@@ -26,7 +30,7 @@ const config = {
     MonsterCemeteryScene,
     BattleScene,
     MonsterPortalScene,
-    FreezerScene
+    FreezerScene,
   ], // Include all scenes
   physics: {
     default: "arcade",
