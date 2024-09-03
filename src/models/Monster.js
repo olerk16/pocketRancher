@@ -21,6 +21,7 @@ class Monster {
       this.sprite = scene.add.image(x, y, monsterConfig.spriteKey); // Use the sprite key from Monsters object
       this.name = name
       this.type = type
+      this.spriteKey = monsterConfig.spriteKey;
   
       // Initialize monster properties
       const { hunger, happiness, energy, hygiene, lifeSpan } = monsterConfig.initialStats;

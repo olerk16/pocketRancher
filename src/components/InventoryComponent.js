@@ -9,7 +9,10 @@ export class InventoryComponent {
     slotSize = 100,
     padding = 10,
     backgroundColor = 0xace5ee,
-    slotColor = 0xffffff
+    slotColor = 0xffffff,
+    onItemClick = null, // Callback for when an item is clicked
+    onItemHover = null, // Callback for when an item is hovered over
+    onItemOut = null // Callback for when the hover ends
   ) {
     this.scene = scene;
     this.x = x;
@@ -21,6 +24,9 @@ export class InventoryComponent {
     this.padding = padding;
     this.backgroundColor = backgroundColor;
     this.slotColor = slotColor;
+    this.onItemClick = onItemClick;
+    this.onItemHover = onItemHover;
+    this.onItemOut = onItemOut;
 
     this.container = this.scene.add.container(this.x, this.y);
     this.createBackground();
@@ -68,15 +74,25 @@ export class InventoryComponent {
             .image(
               slotX + this.slotSize / 2,
               slotY + this.slotSize / 2,
-              item.name
+              item.spriteKey
             )
             .setDisplaySize(this.slotSize - 10, this.slotSize - 10)
             .setInteractive({ useHandCursor: true })
-            .on("pointerdown", () => this.scene.buyItem(item))
-            .on("pointerover", () => this.scene.showInfo(item))
-            .on("pointerout", () => this.scene.hideInfo());
+         
+
+          // Use the provided callbacks for interactions
+          if (this.onItemClick) {
+            itemImage.on("pointerdown", () => this.onItemClick(item));
+          }
+          if (this.onItemHover) {
+            itemImage.on("pointerover", () => this.onItemHover(item));
+          }
+          if (this.onItemOut) {
+            itemImage.on("pointerout", () => this.onItemOut(item));
+          }
 
           this.container.add(itemImage);
+
           itemIndex++;
         }
       }
