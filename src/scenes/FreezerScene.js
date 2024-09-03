@@ -4,7 +4,14 @@ import { createButton } from "../utils/uiUtils.js";
 class FreezerScene extends Phaser.Scene {
   constructor() {
     super({ key: "FreezerScene" });
-    this.selectedMonsterIndex = null; // Initialize with no selection
+    this.selectedMonsters = []; // Initialize with no selection
+    this.freezeCombineButton = null;
+    this.currentModeText = null;
+    this.modes = {
+      unfreeze: "unfreeze",
+      combine: "combine",
+    };
+    this.currentMode = this.modes.unfreeze;
   }
 
   init(data) {
@@ -28,7 +35,7 @@ class FreezerScene extends Phaser.Scene {
       20,
       0xbfe0ff,
       0x3fa1fc,
-      this.unfreezeMonster.bind(this), // Callback for item click
+      this.OnMonsterSlotClicked.bind(this), // Callback for item click
       this.showInfo.bind(this), // Callback for item hover
       this.hideInfo.bind(this) // Callback for item out
     );
@@ -44,37 +51,14 @@ class FreezerScene extends Phaser.Scene {
       .setVisible(false); // Initially hidden
     this.addButtons();
   }
-
-  freezeMonster() {
-    const activeMonster = this.player.getActiveMonster();
-    if (activeMonster) {
-      this.player.freezeMonster(activeMonster); // Freeze the active monster
-      const updatedFrozenMonsters = this.player.getFrozenMonsters();
-      this.inventoryComponent.updateInventory(updatedFrozenMonsters); // Update inventory display after freezing
-    } else {
-      alert("No active monster to freeze.");
-    }
-  }
-
-  unfreezeMonster(selectedMonster) {
-   if(selectedMonster!== null && this.player.activeMonster === null){
-      this.player.activeMonster = selectedMonster;
-      console.log(`Unfroze ${selectedMonster}`);
-      this.player.unfreezeMonster(selectedMonster);
-      const updatedFrozenMonsters = this.player.getFrozenMonsters();
-      this.inventoryComponent.updateInventory(updatedFrozenMonsters);
-   }
-  }
-
-  combineMonster() {
-    // Implement logic for combining monsters (if needed)
-  }
-
   addButtons() {
     this.add
       .text(400, 50, "Monster Freezer", { fontSize: "32px", fill: "#000" })
       .setOrigin(0.5);
 
+    this.currentModeText = this.add
+      .text(400, 500, `${this.currentMode}`, { fontSize: "32px", fill: "#000" })
+      .setOrigin(0.5);
     createButton(this, 700, 50, "Back", () => {
       this.scene.start("GameScene", { player: this.player }); // Pass player data back to GameScene
     });
@@ -83,15 +67,114 @@ class FreezerScene extends Phaser.Scene {
       this.freezeMonster();
     });
 
-    createButton(this, 700, 250, "UnFreeze", () => {
-      this.unfreezeMonster();
-    });
-
-    createButton(this, 700, 350, "Combine", () => {
-      this.combineMonster();
-    });
+    this.freezeCombineButton = createButton(
+      this,
+      700,
+      250,
+      "Change to unfreeze mode",
+      () => {
+        this.changeMode();
+      }
+    );
   }
- 
+  changeMode() {
+    if (this.currentMode === this.modes.unfreeze) {
+      this.currentMode = this.modes.combine;
+      this.freezeCombineButton.setText("Change to combine mode");
+    } else {
+      this.currentMode = this.modes.unfreeze;
+      this.freezeCombineButton.setText("Change to unfreeze mode");
+    }
+    this.selectedMonsters = [];
+    this.updateInventory()
+    this.currentModeText.text = this.currentMode;
+  }
+
+  freezeMonster() {
+    const activeMonster = this.player.getActiveMonster();
+    if (activeMonster) {
+      this.player.freezeMonster(activeMonster); // Freeze the active monster
+      
+      this.updateInventory() // Update inventory display after freezing
+    } else {
+      alert("No active monster to freeze.");
+    }
+  }
+
+  OnMonsterSlotClicked(selectedMonster) {
+    if (selectedMonster === null || this.player.activeMonster !== null) {
+      return;
+    }
+
+    const frozenMonsters = this.player.getFrozenMonsters();
+    const selectedIndex = frozenMonsters.indexOf(selectedMonster);
+
+    if (this.currentMode === this.modes.unfreeze) {
+      this.unfreezeMonster(selectedMonster);
+    } else {
+      this.handleMonsterSelection(
+        selectedMonster,
+        selectedIndex,
+        frozenMonsters
+      );
+    }
+  }
+
+  unfreezeMonster(selectedMonster) {
+    this.player.activeMonster = selectedMonster;
+    console.log(`Unfroze ${selectedMonster}`);
+    this.player.unfreezeMonster(selectedMonster);
+    this.updateInventory();
+  }
+
+  handleMonsterSelection(selectedMonster, selectedIndex, frozenMonsters) {
+    if (this.isSameMonsterSelectedTwice(selectedMonster)) {
+      this.resetSelection(frozenMonsters);
+    } else {
+      this.addMonsterToSelection(selectedMonster, selectedIndex);
+
+      if (this.selectedMonsters.length === 2) {
+        console.log(
+          "Selected two different monsters. Now you can combine them."
+        );
+        this.resetSelection(frozenMonsters); // Reset the selection after combining or performing any action
+      }
+    }
+  }
+
+  isSameMonsterSelectedTwice(selectedMonster) {
+    return (
+      this.selectedMonsters.length > 0 &&
+      this.selectedMonsters[this.selectedMonsters.length - 1] ===
+        selectedMonster
+    );
+  }
+
+  resetSelection(frozenMonsters) {
+    console.log("Same monster selected twice. Resetting selection.");
+    this.selectedMonsters = [];
+    this.updateInventory();
+  }
+
+  addMonsterToSelection(selectedMonster, selectedIndex) {
+    this.selectedMonsters.push(selectedMonster);
+
+    if (selectedIndex !== -1) {
+      this.inventoryComponent.highlightSlot(selectedIndex);
+    } else {
+      console.log("Monster not found in the current inventory");
+    }
+  }
+
+  updateInventory() {
+    const updatedFrozenMonsters = this.player.getFrozenMonsters();
+    this.inventoryComponent.updateInventory(updatedFrozenMonsters);
+  }
+
+  combineMonster() {
+    // Implement logic for combining monsters (if needed)
+  }
+
   showInfo(monster) {
     // Update the text content
     this.descriptionText.setText(monster.type);
@@ -116,17 +199,6 @@ class FreezerScene extends Phaser.Scene {
   hideInfo() {
     // Hide the description text
     this.descriptionText.setVisible(false);
-  }
-
-  selectFrozenMonster(index) {
-    this.selectedMonsterIndex = index; // Update selected monster index
-    this.updateInventoryWindow(); // Refresh the inventory window to show selection
-  }
-
-  getSelectedFrozenMonster() {
-    return this.selectedMonsterIndex !== null
-      ? this.player.getFrozenMonsters()[this.selectedMonsterIndex]
-      : null;
   }
 
   update() {}

@@ -29,6 +29,8 @@ export class InventoryComponent {
     this.onItemOut = onItemOut;
 
     this.container = this.scene.add.container(this.x, this.y);
+    this.selectedSlots = []; // To keep track of selected slots
+    this.slotGraphics = []; // To store slot graphics for easy reference
     this.createBackground();
     this.createSlots();
   }
@@ -67,6 +69,7 @@ export class InventoryComponent {
         );
 
         this.container.add(graphics);
+        this.slotGraphics.push(graphics); // Store the reference to the slot graphics
 
         if (itemIndex < this.items.length) {
           const item = this.items[itemIndex];
@@ -77,8 +80,7 @@ export class InventoryComponent {
               item.spriteKey
             )
             .setDisplaySize(this.slotSize - 10, this.slotSize - 10)
-            .setInteractive({ useHandCursor: true })
-         
+            .setInteractive({ useHandCursor: true });
 
           // Use the provided callbacks for interactions
           if (this.onItemClick) {
@@ -102,7 +104,59 @@ export class InventoryComponent {
   updateInventory(items) {
     this.items = items;
     this.container.removeAll(true);
+    this.selectedSlots = [];
+    this.slotGraphics = []; // Clear the slot graphics array
     this.createBackground();
     this.createSlots();
+  }
+
+  highlightSlot(slotIndex) {
+    // Reset previously selected slots
+    this.selectedSlots.forEach((index) => {
+      this.slotGraphics[index].clear();
+      this.slotGraphics[index].fillStyle(this.slotColor, 1);
+      this.slotGraphics[index].fillRoundedRect(
+        this.padding + (index % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.padding + Math.floor(index / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.slotSize,
+        this.slotSize,
+        10
+      );
+    });
+
+    // Add the new slot to the selected slots
+    this.selectedSlots.push(slotIndex);
+
+    // If more than two slots are selected, reset the first one
+    if (this.selectedSlots.length > 2) {
+      this.selectedSlots.shift();
+    }
+
+    // Highlight the selected slots
+    if (this.selectedSlots.length >= 1) {
+      const firstSelectedIndex = this.selectedSlots[0];
+      this.slotGraphics[firstSelectedIndex].clear();
+      this.slotGraphics[firstSelectedIndex].fillStyle(0x00ff00, 1); // Green color for first selected
+      this.slotGraphics[firstSelectedIndex].fillRoundedRect(
+        this.padding + (firstSelectedIndex % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.padding + Math.floor(firstSelectedIndex / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.slotSize,
+        this.slotSize,
+        10
+      );
+    }
+
+    if (this.selectedSlots.length === 2) {
+      const secondSelectedIndex = this.selectedSlots[1];
+      this.slotGraphics[secondSelectedIndex].clear();
+      this.slotGraphics[secondSelectedIndex].fillStyle(0xff0000, 1); // Red color for second selected
+      this.slotGraphics[secondSelectedIndex].fillRoundedRect(
+        this.padding + (secondSelectedIndex % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.padding + Math.floor(secondSelectedIndex / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
+        this.slotSize,
+        this.slotSize,
+        10
+      );
+    }
   }
 }
