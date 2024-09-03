@@ -55,7 +55,10 @@ class MarketBazaarScene extends Phaser.Scene {
       100,
       20,
       0x8b4513,
-      0x334321
+      0x334321,
+      this.buyItem.bind(this), // Callback for item click
+      this.showInfo.bind(this), // Callback for item hover
+      this.hideInfo.bind(this)  // Callback for item out
     );
     // Display player's current coins
     this.coinsText = this.add.text(16, 16, "Coins: " + this.playerCoins, {
