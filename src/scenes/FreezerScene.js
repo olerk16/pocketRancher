@@ -7,11 +7,11 @@ class FreezerScene extends Phaser.Scene {
     this.selectedMonsters = []; // Initialize with no selection
     this.freezeCombineButton = null;
     this.currentModeText = null;
-    this.modes = {
-      unfreeze: "unfreeze",
-      combine: "combine",
-    };
-    this.currentMode = this.modes.unfreeze;
+    this.modes = Object.freeze({
+      UNFREEZE: "UNFREEZE",
+      COMBINE: "COMBINE",
+    });
+    this.currentMode = this.modes.UNFREEZE;
   }
 
   init(data) {
@@ -78,11 +78,11 @@ class FreezerScene extends Phaser.Scene {
     );
   }
   changeMode() {
-    if (this.currentMode === this.modes.unfreeze) {
-      this.currentMode = this.modes.combine;
+    if (this.currentMode === this.modes.UNFREEZE) {
+      this.currentMode = this.modes.COMBINE;
       this.freezeCombineButton.setText("Change to combine mode");
     } else {
-      this.currentMode = this.modes.unfreeze;
+      this.currentMode = this.modes.UNFREEZE;
       this.freezeCombineButton.setText("Change to unfreeze mode");
     }
     this.selectedMonsters = [];
@@ -109,7 +109,7 @@ class FreezerScene extends Phaser.Scene {
     const frozenMonsters = this.player.getFrozenMonsters();
     const selectedIndex = frozenMonsters.indexOf(selectedMonster);
 
-    if (this.currentMode === this.modes.unfreeze) {
+    if (this.currentMode === this.modes.UNFREEZE) {
       this.unfreezeMonster(selectedMonster);
     } else {
       this.handleMonsterSelection(
