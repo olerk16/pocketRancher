@@ -30,7 +30,7 @@ class PlayerSetupScene extends Phaser.Scene {
     this.player.setScene(this);
     
     // Create input fields using the new InputComponent
-    this.setupInputFields();
+    this.setupInputFields()
 
     // Create dropdown for ranch location using the new RanchLocationDropdown component
     new RanchLocationDropdown(this, this.player);
@@ -39,7 +39,7 @@ class PlayerSetupScene extends Phaser.Scene {
     this.assignRandomMonster();
 
     // Create a button to confirm the setup and start the game
-    createButton(this, 400, 400, "Start Game", () => this.startGame());
+    createButton(this, 400, 400, "Start Game", () => this.startGame()).setOrigin(.5);;
 
     // Create a dialog component and display instructions
     this.dialog = new DialogComponent(this, 400, 300, 300, 150, "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.", 'character');

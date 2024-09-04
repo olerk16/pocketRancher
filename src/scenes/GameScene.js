@@ -198,7 +198,7 @@ class GameScene extends Phaser.Scene {
       { text: "Cemetery", onClick: () => this.viewCemetery() },
       { text: "Monster Portal", onClick: () => this.goToMonsterPortal() },
       { text: "Monster Freezer", onClick: () => this.goToFreezer() },
-    ]);
+    ])
   }
 
   goToFreezer() {

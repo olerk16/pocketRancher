@@ -59,23 +59,23 @@ class FreezerScene extends Phaser.Scene {
     this.currentModeText = this.add
       .text(400, 500, `${this.currentMode}`, { fontSize: "32px", fill: "#000" })
       .setOrigin(0.5);
-    createButton(this, 700, 50, "Back", () => {
+    createButton(this, 400, 450, "Back", () => {
       this.scene.start("GameScene", { player: this.player }); // Pass player data back to GameScene
-    });
+    }).setOrigin(.5);
 
-    createButton(this, 700, 150, "Freeze", () => {
+    createButton(this, 400, 400, "Freeze", () => {
       this.freezeMonster();
-    });
+    }).setOrigin(.5);
 
     this.freezeCombineButton = createButton(
       this,
-      700,
-      250,
+      400,
+      350,
       "Change to unfreeze mode",
       () => {
         this.changeMode();
       }
-    );
+    ).setOrigin(.5);
   }
   changeMode() {
     if (this.currentMode === this.modes.UNFREEZE) {

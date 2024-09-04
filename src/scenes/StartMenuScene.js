@@ -22,7 +22,7 @@ class StartMenuScene extends Phaser.Scene {
     // Create button for starting the game using the utility function
     createButton(this, 400, 300, "Start Game", () => {
       this.scene.start("PlayerSetupScene"); // start new player setup scene
-    });
+    }).setOrigin(.5);
   }
 
   setImages() {
