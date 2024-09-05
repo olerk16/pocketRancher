@@ -16,10 +16,6 @@ class PlayerSetupScene extends Phaser.Scene {
 
   preload() {
      // Load assets for the player setup scene dynamically based on Monsters object
-     Object.values(Monsters).forEach(monster => {
-      this.load.image(monster.spriteKey, `assets/images/${monster.spriteKey}.png`);
-    });
-    this.load.image('character', `assets/images/trainer_0.png`);
   }
 
   create() {

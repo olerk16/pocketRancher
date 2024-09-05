@@ -33,25 +33,6 @@ class GameScene extends Phaser.Scene {
 
   preload() {
     //  Load monster sprite based on selected monster type
-    Object.values(Monsters).forEach(monster => {
-      this.load.image(monster.spriteKey, `assets/images/${monster.spriteKey}.png`);
-    });
-    this.load.image("exitButton", "assets/images/icons/exitButton.webp");
-
-    // Load background images for each location
-    this.load.image(
-      "grassLandRanch",
-      "assets/images/backGrounds/grassLandRanch.webp"
-    );
-    this.load.image(
-      "desertRanch",
-      "assets/images/backGrounds/desertRanch.webp"
-    );
-    this.load.image(
-      "mountainRanch",
-      "assets/images/backGrounds/mountainRanch.webp"
-    );
-    this.load.image("desertFight", "assets/images/backGrounds/desertFight.webp");
   }
 
   create() {

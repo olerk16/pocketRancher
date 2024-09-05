@@ -8,7 +8,6 @@ class MonsterPortalScene extends Phaser.Scene {
 
   preload() {
     // Load any assets you need for the scene here
-    this.load.image('portalBackground', 'assets/images/backGrounds/portalBackground.webp');
   }
 
   create() {

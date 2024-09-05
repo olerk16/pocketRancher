@@ -12,7 +12,7 @@ class MonsterCemeteryScene extends Phaser.Scene {
   
     preload() {
       // Load any assets for the cemetery scene if needed
-      this.load.image('cemetery', 'assets/images/backGrounds/cemetery.webp');
+      
     }
   
     create() {
