@@ -32,6 +32,15 @@ class Monster {
       this.hygiene = hygiene;
       this.lifeSpan = lifeSpan;
 
+      const {health, attack, defense, magicDamage, magicDefense, speed} = monsterConfig.initialBattleStats;
+
+      this.health = health;
+      this.attack = attack;
+      this.defense = defense;
+      this.magicDamage = magicDamage;
+      this.magicDefense = magicDefense;
+      this.speed = speed;
+
       // New property to track if the monster is frozen
       this.isFrozen = false;
 
