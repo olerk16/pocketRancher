@@ -8,7 +8,71 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const APIkey = "your api key here";
+const APIkey = "sk-uehxQeSqwki1zCDLxs8Y_Tnr_tdMRfs-3pbs1aIF90T3BlbkFJjGTzJFKlxuQIOVNHRsQfi9lvOkQrkH4Fk2Zx41or8A";
+
+async function removeWhiteBackgroundFromBuffer(inputBuffer) {
+  try {
+    // Read the image without altering alpha channel
+    const image = sharp(inputBuffer);
+
+    // Get image metadata
+    const metadata = await image.metadata();
+
+    // Define the threshold for white pixels
+    const threshold = 242; // Adjust as needed (0-255)
+
+    // Extract raw pixel data
+    const { data, info } = await image
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const { width, height, channels } = info;
+    const pixelCount = width * height;
+
+    // Output buffer needs to be large enough for 4 channels per pixel
+    const outputBuffer = Buffer.alloc(pixelCount * 4);
+
+    for (let i = 0; i < pixelCount; i++) {
+      const idxIn = i * channels; // Index for input buffer
+      const idxOut = i * 4;       // Index for output buffer (always 4 channels)
+
+      const r = data[idxIn];
+      const g = data[idxIn + 1];
+      const b = data[idxIn + 2];
+
+      // Determine if the pixel is near white
+      if (r >= threshold && g >= threshold && b >= threshold) {
+        // Set alpha to 0 (transparent)
+        outputBuffer[idxOut] = r;
+        outputBuffer[idxOut + 1] = g;
+        outputBuffer[idxOut + 2] = b;
+        outputBuffer[idxOut + 3] = 0;
+      } else {
+        // Keep original pixel and set alpha to fully opaque
+        outputBuffer[idxOut] = r;
+        outputBuffer[idxOut + 1] = g;
+        outputBuffer[idxOut + 2] = b;
+        outputBuffer[idxOut + 3] = 255;
+      }
+    }
+
+    // Create the output image with alpha channel
+    const outputImageBuffer = await sharp(outputBuffer, {
+      raw: {
+        width: width,
+        height: height,
+        channels: 4,
+      },
+    })
+      .png()
+      .toBuffer();
+
+    return outputImageBuffer;
+  } catch (error) {
+    console.error('Error processing image:', error);
+    throw error;
+  }
+}
 
 app.post('/generate-monster', async (req, res) => {
     console.log('Received request to generate monster');
@@ -34,24 +98,14 @@ app.post('/generate-monster', async (req, res) => {
       // Download the image as a buffer
       const imageResponseBuffer = await axios.get(monsterImageUrl, { responseType: 'arraybuffer' });
       const inputBuffer = Buffer.from(imageResponseBuffer.data);
-      // still need to remove whitespace of new monster images
-      // Convert image to PNG format, trim the background, and remove the background based on color threshold
-    const trimmedImageBuffer = await sharp(inputBuffer)
-    .ensureAlpha() // Ensure there is an alpha channel
-    .png() // Convert to PNG format to support transparency
-    .trim({ threshold: 254 }) // Trim off the white background; adjust the threshold as needed
-    .toBuffer();
 
-    // // Convert image to PNG format, trim the background, and remove the background based on color threshold
-    // const trimmedImageBuffer = await sharp(inputBuffer)
-    //   .png() // Convert to PNG format to support transparency
-    //   .flatten({ background: '#ffffff' }) // Set white background for better edge detection
-    //   .trim({ threshold: 240 }) // Trim off the white background; adjust the threshold as needed
-    //   .toBuffer();
+      // Remove the white background using the function
+      const processedImageBuffer = await removeWhiteBackgroundFromBuffer(inputBuffer);
+
 
   // Set the appropriate headers and send the trimmed image data as response
   res.setHeader('Content-Type', 'image/png');
-  res.send(trimmedImageBuffer);
+  res.send(processedImageBuffer);
     } catch (error) {
       console.error('Error generating monster image:', error.response ? error.response.data : error.message);
       res.status(500).json({ error: 'An error occurred while generating the monster image.' });
