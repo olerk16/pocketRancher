@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const APIkey = "sk-uehxQeSqwki1zCDLxs8Y_Tnr_tdMRfs-3pbs1aIF90T3BlbkFJjGTzJFKlxuQIOVNHRsQfi9lvOkQrkH4Fk2Zx41or8A";
+const APIkey = "";
 
 async function removeWhiteBackgroundFromBuffer(inputBuffer) {
   try {
