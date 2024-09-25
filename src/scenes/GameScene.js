@@ -1,9 +1,9 @@
 // src/scenes/GameScene.js
-
 import { createButton, createImageButton } from "../utils/uiUtils.js"; // Import the utility functions
 import { startJourney } from "../utils/startJourney.js"; // Import the startJourney function
 import DropdownMenu from "../components/DropDownMenu.js"; // Import the DropdownMenu component
 import DisplayStatsComponent from "../components/DisplayStatsComponent.js"; // Import the new component
+import DialogComponent from '../components/DialogComponent.js'; // Import the DialogComponent
 import Monster from "../models/Monster.js";
 import Monsters from "../models/Monsters.js"; // Import the Monsters object
 
@@ -19,6 +19,8 @@ class GameScene extends Phaser.Scene {
     this.playerCoins = this.player.coins;
     this.inventory = this.player.inventory;
     this.ranchLocation = this.player.ranchLocation;
+
+    this.dialog = null; // Initialize dialog reference as null
     
     // Get the active monster from the player
     this.activeMonster = this.player.getActiveMonster();
@@ -167,6 +169,9 @@ class GameScene extends Phaser.Scene {
   }
 
   createDropdownMenu() {
+
+    // Check if there is no active monster or all monsters are frozen
+    const canAccessPortal = !this.player.getActiveMonster()
     // Create dropdown menu with game actions
     this.dropdownMenu = new DropdownMenu(this, [
       { text: "Feed", onClick: () => this.toggleInventory() },
@@ -177,8 +182,18 @@ class GameScene extends Phaser.Scene {
       { text: "Journey", onClick: () => startJourney(this, this.activeMonster, this.dropdownMenu, this.monsterStatsComponent, this.player) }, // Updated call to startJourney
       { text: "View Map", onClick: () => this.viewMap() },
       { text: "Cemetery", onClick: () => this.viewCemetery() },
-      { text: "Monster Portal", onClick: () => this.goToMonsterPortal() },
       { text: "Monster Freezer", onClick: () => this.goToFreezer() },
+      { 
+        text: "Monster Portal", 
+        onClick: () => {
+          if (canAccessPortal) {
+            this.goToMonsterPortal();
+          } else {
+            console.log("All monsters must be frozen before accessing the portal.");
+            this.showErrorDialog("Freeze all monsters before accessing the portal.");
+          }
+        }
+      }
     ])
   }
 
@@ -226,6 +241,23 @@ class GameScene extends Phaser.Scene {
     // Switch to the market scene
     this.scene.start("MarketBazaarScene", {
       player: this.player,  // Pass the player object directly
+    });
+  }
+
+  showErrorDialog(message) {
+    if (this.dialog) {
+      this.dialog.destroy(); // Destroy the existing dialog if it exists
+    }
+
+    // Create a new DialogComponent and display the error message
+    this.dialog = new DialogComponent(this, 400, 300, 400, 150, message, 'character'); // Use a suitable imageKey here
+    this.dialog.showDialog(message); // Display the dialog
+
+    // Optionally, auto-close the dialog after a few seconds
+    this.time.delayedCall(3000, () => {
+      if (this.dialog) {
+        this.dialog.hideDialog();
+      }
     });
   }
 
