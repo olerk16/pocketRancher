@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Monster = require('../models/Monster');
+const { generateMonster } = require('../controllers/monsterController');
 
 // Route to create a new monster
 router.post('/create', async (req, res) => {
@@ -14,6 +15,9 @@ router.post('/create', async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
+// POST /generate-monster
+router.post('/generate-monster', generateMonster);
 
 // Route to get all monsters
 router.get('/', async (req, res) => {

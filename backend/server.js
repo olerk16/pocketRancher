@@ -1,16 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-
-const app = express();
-
-console.log("helllooooooooooooooo",process.env.MONGO_URI)
-
-// Middleware to parse JSON
-app.use(express.json());
+const cors = require('cors');
 
 // Import routes
 const monsterRoutes = require('./routes/monsters');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
 
 // Routes
 app.use('/monsters', monsterRoutes);
