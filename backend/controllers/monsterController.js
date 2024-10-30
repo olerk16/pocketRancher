@@ -80,3 +80,19 @@ exports.generateMonster = async (req, res) => {
         res.status(500).json({ error: 'Error generating the monster image.' });
     }
 };
+
+exports.getMonsterByType = async (req, res) => {
+    console.log("getting monster", req.body)
+    try {
+      const { type } = req.params;
+      const monster = await Monster.findOne({ type });
+  
+      if (!monster) {
+        return res.status(404).json({ error: 'Monster not found' });
+      }
+  
+      res.json(monster);
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  };
