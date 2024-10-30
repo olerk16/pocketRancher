@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Monster = require('../models/Monster');
-const { generateMonster } = require('../controllers/monsterController');
+// const { generateMonster } = require('../controllers/monsterController');
+const monsterController = require('../controllers/monsterController');
 
 // Route to create a new monster
 router.post('/create', async (req, res) => {
@@ -16,8 +17,12 @@ router.post('/create', async (req, res) => {
   }
 });
 
+// Route to get a monster by type
+router.get('/monsters/:type', monsterController.getMonsterByType);
+
+
 // POST /generate-monster
-router.post('/generate-monster', generateMonster);
+router.post('/generate-monster', monsterController.generateMonster);
 
 // Route to get all monsters
 router.get('/', async (req, res) => {

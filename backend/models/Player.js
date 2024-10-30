@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const Monster = require('../models/Monster');
+
 
 const playerSchema = new Schema({
   name: { type: String, required: true },
@@ -7,12 +9,11 @@ const playerSchema = new Schema({
   coins: { type: Number, default: 1000 },
   inventory: { type: Array, default: [] },
   ranchLocation: { type: String, default: "grassLand" },
-  monsters: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Monster', // Assuming you have a Monster schema/model
-    }
-  ]
+  monsters: [{ type: Schema.Types.ObjectId, ref: 'Monster' }], // Referencing Monster model
+  activeMonster: { type: Schema.Types.ObjectId, ref: 'Monster' }, // Reference to active monster
+  frozenMonsters: [{ type: Schema.Types.ObjectId, ref: 'Monster' }] 
+
+
 });
 
 const Player = mongoose.model('Player', playerSchema);
