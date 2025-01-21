@@ -1,162 +1,150 @@
 export class InventoryComponent {
-  constructor(
-    scene,
-    x,
-    y,
-    width,
-    height,
-    items,
-    slotSize = 100,
-    padding = 10,
-    backgroundColor = 0xace5ee,
-    slotColor = 0xffffff,
-    onItemClick = null, // Callback for when an item is clicked
-    onItemHover = null, // Callback for when an item is hovered over
-    onItemOut = null // Callback for when the hover ends
-  ) {
-    this.scene = scene;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.items = items;
-    this.slotSize = slotSize;
-    this.padding = padding;
-    this.backgroundColor = backgroundColor;
-    this.slotColor = slotColor;
-    this.onItemClick = onItemClick;
-    this.onItemHover = onItemHover;
-    this.onItemOut = onItemOut;
+    constructor(
+        scene,
+        x,
+        y,
+        width,
+        height,
+        items,
+        slotSize = 80,
+        padding = 10,
+        backgroundColor = 0x222222,
+        borderColor = 0x444444,
+        onSlotClick = null,
+        onSlotHover = null,
+        onSlotHoverEnd = null
+    ) {
+        this.scene = scene;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.items = items || [];
+        this.slotSize = slotSize;
+        this.padding = padding;
+        this.backgroundColor = backgroundColor;
+        this.borderColor = borderColor;
+        this.onSlotClick = onSlotClick;
+        this.onSlotHover = onSlotHover;
+        this.onSlotHoverEnd = onSlotHoverEnd;
+        this.container = null;
+        this.slots = [];
+        this.visible = true;
 
-    this.container = this.scene.add.container(this.x, this.y);
-    this.selectedSlots = []; // To keep track of selected slots
-    this.slotGraphics = []; // To store slot graphics for easy reference
-    this.createBackground();
-    this.createSlots();
-  }
+        // Calculate number of slots that can fit
+        this.slotsPerRow = Math.floor((width - padding * 2) / (slotSize + padding));
+        this.rows = Math.floor((height - padding * 2) / (slotSize + padding));
+        this.maxSlots = this.slotsPerRow * this.rows;
 
-  createBackground() {
-    const graphics = this.scene.add.graphics();
-    const cornerRadius = 20;
+        this.createInventoryWindow();
+    }
 
-    graphics.fillStyle(this.backgroundColor, 1);
-    graphics.fillRoundedRect(0, 0, this.width, this.height, cornerRadius);
-    graphics.lineStyle(2, 0x000000, 1);
-    graphics.strokeRoundedRect(0, 0, this.width, this.height, cornerRadius);
+    createInventoryWindow() {
+        // Create background
+        const bg = this.scene.add.rectangle(0, 0, this.width, this.height, this.backgroundColor, 0.8);
+        bg.setOrigin(0);
+        this.container = this.scene.add.container(this.x, this.y);
+        this.container.add(bg);
 
-    this.container.add(graphics);
-  }
+        // Create border
+        const border = this.scene.add.rectangle(0, 0, this.width, this.height, this.borderColor);
+        border.setOrigin(0);
+        border.setStrokeStyle(2, this.borderColor);
+        this.container.add(border);
 
-  createSlots() {
-    const cols = Math.floor(this.width / (this.slotSize + this.padding));
-    const rows = Math.floor(this.height / (this.slotSize + this.padding));
+        // Create inventory slots
+        this.createSlots();
+    }
 
-    let itemIndex = 0;
+    createSlots() {
+        for (let i = 0; i < this.maxSlots; i++) {
+            const row = Math.floor(i / this.slotsPerRow);
+            const col = i % this.slotsPerRow;
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const slotX = this.padding + col * (this.slotSize + this.padding);
-        const slotY = this.padding + row * (this.slotSize + this.padding);
+            const x = this.padding + col * (this.slotSize + this.padding);
+            const y = this.padding + row * (this.slotSize + this.padding);
 
-        const graphics = this.scene.add.graphics();
-        graphics.fillStyle(this.slotColor, 1);
-        graphics.fillRoundedRect(
-          slotX,
-          slotY,
-          this.slotSize,
-          this.slotSize,
-          10
-        );
-
-        this.container.add(graphics);
-        this.slotGraphics.push(graphics); // Store the reference to the slot graphics
-
-        if (itemIndex < this.items.length) {
-          const item = this.items[itemIndex];
-          const itemImage = this.scene.add
-            .image(
-              slotX + this.slotSize / 2,
-              slotY + this.slotSize / 2,
-              item.spriteKey
-            )
-            .setDisplaySize(this.slotSize - 10, this.slotSize - 10)
-            .setInteractive({ useHandCursor: true });
-
-          // Use the provided callbacks for interactions
-          if (this.onItemClick) {
-            itemImage.on("pointerdown", () => this.onItemClick(item));
-          }
-          if (this.onItemHover) {
-            itemImage.on("pointerover", () => this.onItemHover(item));
-          }
-          if (this.onItemOut) {
-            itemImage.on("pointerout", () => this.onItemOut(item));
-          }
-
-          this.container.add(itemImage);
-
-          itemIndex++;
+            const slot = this.createSlot(x, y, i);
+            this.slots.push(slot);
+            this.container.add(slot);
         }
-      }
-    }
-  }
-
-  updateInventory(items) {
-    this.items = items;
-    this.container.removeAll(true);
-    this.selectedSlots = [];
-    this.slotGraphics = []; // Clear the slot graphics array
-    this.createBackground();
-    this.createSlots();
-  }
-
-  highlightSlot(slotIndex) {
-    // Reset previously selected slots
-    this.selectedSlots.forEach((index) => {
-      this.slotGraphics[index].clear();
-      this.slotGraphics[index].fillStyle(this.slotColor, 1);
-      this.slotGraphics[index].fillRoundedRect(
-        this.padding + (index % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.padding + Math.floor(index / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.slotSize,
-        this.slotSize,
-        10
-      );
-    });
-
-    // Add the new slot to the selected slots
-    this.selectedSlots.push(slotIndex);
-
-    // If more than two slots are selected, reset the first one
-    if (this.selectedSlots.length > 2) {
-      this.selectedSlots.shift();
     }
 
-    // Highlight the selected slots
-    if (this.selectedSlots.length >= 1) {
-      const firstSelectedIndex = this.selectedSlots[0];
-      this.slotGraphics[firstSelectedIndex].clear();
-      this.slotGraphics[firstSelectedIndex].fillStyle(0x00ff00, 1); // Green color for first selected
-      this.slotGraphics[firstSelectedIndex].fillRoundedRect(
-        this.padding + (firstSelectedIndex % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.padding + Math.floor(firstSelectedIndex / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.slotSize,
-        this.slotSize,
-        10
-      );
+    createSlot(x, y, index) {
+        // This is meant to be overridden by child classes
+        const slot = this.scene.add.container(x, y);
+        const background = this.scene.add.rectangle(0, 0, this.slotSize, this.slotSize, this.backgroundColor);
+        background.setStrokeStyle(1, this.borderColor);
+        slot.add(background);
+        return slot;
     }
 
-    if (this.selectedSlots.length === 2) {
-      const secondSelectedIndex = this.selectedSlots[1];
-      this.slotGraphics[secondSelectedIndex].clear();
-      this.slotGraphics[secondSelectedIndex].fillStyle(0xff0000, 1); // Red color for second selected
-      this.slotGraphics[secondSelectedIndex].fillRoundedRect(
-        this.padding + (secondSelectedIndex % Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.padding + Math.floor(secondSelectedIndex / Math.floor(this.width / (this.slotSize + this.padding))) * (this.slotSize + this.padding),
-        this.slotSize,
-        this.slotSize,
-        10
-      );
+    updateInventory(newItems) {
+        this.items = newItems;
+        this.resetSlots();
     }
-  }
-}
+
+    resetSlots() {
+        // Clear existing slots
+        this.slots.forEach(slot => {
+            if (slot && slot.destroy) {
+                slot.destroy();
+            }
+        });
+        this.slots = [];
+        
+        // Remove existing background and border
+        this.container.removeAll(true);
+        
+        // Recreate the window
+        this.createInventoryWindow();
+    }
+
+    highlightSlot(slotIndex) {
+        // Reset previously selected slots
+        this.slots.forEach((slot) => {
+            slot.removeAll(true);
+            slot.add(this.createSlot(this.x, this.y, slotIndex));
+        });
+
+        // Add the new slot to the selected slots
+        this.slots.push(this.slots[slotIndex]);
+
+        // If more than two slots are selected, reset the first one
+        if (this.slots.length > 2) {
+            this.slots.shift();
+        }
+
+        // Highlight the selected slots
+        if (this.slots.length >= 1) {
+            const firstSelectedIndex = this.slots.indexOf(this.slots[0]);
+            this.slots[firstSelectedIndex].removeAll(true);
+            this.slots[firstSelectedIndex].add(this.createSlot(this.x, this.y, firstSelectedIndex));
+        }
+
+        if (this.slots.length === 2) {
+            const secondSelectedIndex = this.slots.indexOf(this.slots[1]);
+            this.slots[secondSelectedIndex].removeAll(true);
+            this.slots[secondSelectedIndex].add(this.createSlot(this.x, this.y, secondSelectedIndex));
+        }
+    }
+
+    setVisible(visible) {
+        this.visible = visible;
+        if (this.container) {
+            this.container.setVisible(visible);
+        }
+    }
+
+    toggle() {
+        this.setVisible(!this.visible);
+    }
+
+    destroy() {
+        if (this.container) {
+            this.container.destroy();
+            this.container = null;
+        }
+        this.slots = [];
+    }
+} 

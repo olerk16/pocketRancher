@@ -1,6 +1,8 @@
+import Offerings from './Offerings';
+
 const Items = {
-  Potato: {
-    name: "potato",
+  POTATO: {
+    name: "Potato",
     spriteKey: "potato",
     price: 5,
     description: "Potato: 5 gold 40 hunger -10 happiness",
@@ -10,8 +12,8 @@ const Items = {
     lifeSpanAmount: 0,
   },
 
-  Steak: {
-    name: "steak",
+  STEAK: {
+    name: "Steak",
     spriteKey: "steak",
     price: 100,
     description: "Steak: 100 gold 100 hunger 40 happiness",
@@ -20,9 +22,9 @@ const Items = {
     energyAmount: 0,
     lifeSpanAmount: 0,
   },
-  ToyShaker: {
-    name: "toyShaker",
-    spriteKey: "toyShaker",
+  TOY: {
+    name: "Toy",
+    spriteKey: "toy",
     price: 20,
     description: "Toy Shaker: 20 gold 40 happiness",
     hungerAmount: 0,
@@ -30,8 +32,8 @@ const Items = {
     energyAmount: 0,
     lifeSpanAmount: 0,
   },
-  Flowers: {
-    name: "flowers",
+  FLOWERS: {
+    name: "Flowers",
     spriteKey: "flowers",
     price: 40,
     description: "Flowers: 40 gold 80 happiness",
@@ -40,9 +42,9 @@ const Items = {
     energyAmount: 0,
     lifeSpanAmount: 0,
   },
-  MedicBag: {
-    name: "medicBag",
-    spriteKey:"medicBag",
+  HEALTH_POTION: {
+    name: "Health Potion",
+    spriteKey: "healthPotion",
     price: 100,
     description: "Medic Bag: 100 gold will cure disease",
     hungerAmount: 0,
@@ -50,7 +52,19 @@ const Items = {
     energyAmount: 0,
     lifeSpanAmount: 0,
   },
+  MAGIC_BERRIES: {
+    name: "Magic Berries",
+    spriteKey: "magicBerries",
+    price: 100,
+    description: "Magic Berries: 100 gold 100 happiness",
+    hungerAmount: 50,
+    happinessAmount: 100,
+    energyAmount: 0,
+    lifeSpanAmount: 0,
+  },
   
+  // Add offerings to items
+  ...Offerings
 };
 
 export default Items;

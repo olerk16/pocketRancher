@@ -2,13 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const AWS = require('aws-sdk');
-
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION  // e.g., 'us-east-1'
-});
+const path = require('path');
 
 // Import routes
 const monsterRoutes = require('./routes/monsters');
@@ -17,6 +11,9 @@ const playerRoutes = require('./routes/players');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the data/Assets directory
+app.use('/backend/data/Assets', express.static(path.join(__dirname, 'data', 'Assets')));
 
 // Routes
 app.use('/api/monsters', monsterRoutes);

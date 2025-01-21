@@ -1,7 +1,8 @@
 // utils/imageUtils.js
 const sharp = require('sharp');
 
-exports.removeWhiteBackgroundFromBuffer = async (inputBuffer) => {
+// Define the function first
+const removeWhiteBackgroundFromBuffer = async (inputBuffer) => {
     try {
         const image = sharp(inputBuffer);
         const metadata = await image.metadata();
@@ -30,4 +31,9 @@ exports.removeWhiteBackgroundFromBuffer = async (inputBuffer) => {
         console.error('Error processing image:', error);
         throw error;
     }
+};
+
+// Then export it
+module.exports = {
+    removeWhiteBackgroundFromBuffer
 };

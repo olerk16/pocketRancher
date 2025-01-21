@@ -16,7 +16,17 @@ class Monster {
     this.favoriteFood = data.favoriteFood;
     this.imageURL = data.imageURL;
     this.initialStats = data.initialStats || {};
+    
+    // Ensure currentStats are properly initialized
     this.currentStats = data.currentStats || { ...this.initialStats };
+    
+    // Set individual stat properties from currentStats
+    this.hunger = this.currentStats.hunger;
+    this.happiness = this.currentStats.happiness;
+    this.energy = this.currentStats.energy;
+    this.hygiene = this.currentStats.hygiene;
+    this.lifeSpan = this.currentStats.lifeSpan;
+
     this.isFrozen = data.isFrozen || false;
 
     // Movement properties
@@ -51,21 +61,35 @@ class Monster {
   }
 
   /**
+   * Gets the lifespan as a percentage string
+   */
+  getLifeSpanPercentage() {
+    return `${Math.round(this.lifeSpan)}%`;
+  }
+
+  /**
    * Initializes the monster's sprite and sets initial stats.
    */
   initializeMonster() {
-    // Set initial stats
-    this.hunger = this.currentStats.hunger;
-    this.happiness = this.currentStats.happiness;
-    this.energy = this.currentStats.energy;
-    this.hygiene = this.currentStats.hygiene;
-    this.lifeSpan = this.currentStats.lifeSpan;
-    this.spriteKey = this.imageURL; // Use the image URL as the sprite key
-
-    // Add the sprite to the scene
+    // Only initialize stats if they haven't been set
+    if (!this.hunger && !this.happiness && !this.energy && !this.hygiene && !this.lifeSpan) {
+      this.hunger = this.currentStats.hunger;
+      this.happiness = this.currentStats.happiness;
+      this.energy = this.currentStats.energy;
+      this.hygiene = this.currentStats.hygiene;
+      this.lifeSpan = this.currentStats.lifeSpan;
+    }
+    
+    this.spriteKey = this.imageURL;
     this.sprite = this.scene.add.image(400, 300, this.spriteKey);
 
-    console.log(`Monster ${this.name} initialized with existing data.`);
+    console.log(`Monster ${this.name} initialized with stats:`, {
+      hunger: this.hunger,
+      happiness: this.happiness,
+      energy: this.energy,
+      hygiene: this.hygiene,
+      lifeSpan: this.lifeSpan
+    });
   }
 
   /**
@@ -112,7 +136,17 @@ class Monster {
   freeze() {
     this.isFrozen = true;
     if (this.sprite) this.sprite.setVisible(false); // Hide sprite when frozen
-    console.log(`${this.name} is now frozen.`);
+    
+    // Store current stats before freezing
+    this.currentStats = {
+      hunger: this.hunger,
+      happiness: this.happiness,
+      energy: this.energy,
+      hygiene: this.hygiene,
+      lifeSpan: this.lifeSpan
+    };
+    
+    console.log(`${this.name} is now frozen with stats:`, this.currentStats);
     this.clearTimers(); // Stop timers when frozen
   }
 
@@ -121,9 +155,29 @@ class Monster {
    */
   unfreeze() {
     this.isFrozen = false;
-    if (this.sprite) this.sprite.setVisible(true); // Show sprite when unfrozen
-    console.log(`${this.name} is now unfrozen.`);
-    this.setupTimers(); // Restart timers
+    
+    // Restore stats from frozen state
+    if (this.currentStats) {
+      this.hunger = this.currentStats.hunger;
+      this.happiness = this.currentStats.happiness;
+      this.energy = this.currentStats.energy;
+      this.hygiene = this.currentStats.hygiene;
+      this.lifeSpan = this.currentStats.lifeSpan;
+    }
+    
+    // Make sure we have a valid scene before creating sprite
+    if (this.scene && this.scene.add) {
+      // Create new sprite if it doesn't exist
+      if (!this.sprite) {
+        this.sprite = this.scene.add.image(400, 300, this.imageURL);
+      }
+      this.sprite.setVisible(true);
+    }
+    
+    console.log(`${this.name} is now unfrozen with stats:`, this.currentStats);
+    
+    // Only setup timers after sprite is created
+    this.setupTimers();
   }
 
   /**
@@ -147,8 +201,16 @@ class Monster {
   decreaseLifeSpan() {
     if (this.isFrozen) return;
 
-    const decayAmount = (this.hunger > 80 || this.energy < 20) ? 0.2 : 0.1;
-    this.lifeSpan = Math.max(0, this.lifeSpan - decayAmount);
+    // Base decay amount
+    let decayAmount = 0.1;
+
+    // Double decay if hunger is at 0 or energy is very low
+    if (this.hunger <= 0 || this.energy < 20) {
+      decayAmount *= 2;
+    }
+
+    // Keep lifespan between 0 and 100
+    this.lifeSpan = Math.max(0, Math.min(100, this.lifeSpan - decayAmount));
 
     if (this.lifeSpan <= 0) {
       this.handleDeath();
@@ -163,25 +225,36 @@ class Monster {
   handleDeath() {
     console.log(`${this.name} has died.`);
 
-    // Save the monster's name to the deceased list
-    if (!this.scene.deceasedMonsters) {
-      this.scene.deceasedMonsters = [];
+    // Add monster to deceased list if we have a player reference
+    if (this.scene.player) {
+        this.scene.player.addDeceasedMonster(this);
     }
-    this.scene.deceasedMonsters.push(this.name);
 
     // Remove the monster's sprite
     if (this.sprite) {
-      this.sprite.destroy();
-      this.sprite = null;
+        this.sprite.destroy();
+        this.sprite = null;
     }
 
     // Clear timers
     this.clearTimers();
 
-    // Notify the scene to handle game over or death
-    if (this.scene.onMonsterDeath) {
-      this.scene.onMonsterDeath(this);
+    // Remove from player's active monsters if applicable
+    if (this.scene.player) {
+        const index = this.scene.player.monsters.indexOf(this);
+        if (index > -1) {
+            this.scene.player.monsters.splice(index, 1);
+        }
+        if (this.scene.player.activeMonster === this) {
+            this.scene.player.activeMonster = null;
+        }
     }
+
+    // Transition to cemetery scene
+    this.scene.scene.start('CemeteryScene', { 
+        player: this.scene.player.toJSON(),
+        deceasedMonster: this.toJSON()
+    });
   }
 
   /**
@@ -261,8 +334,9 @@ class Monster {
    * Updates the display components associated with the monster.
    */
   updateDisplay() {
-    if (this.displayStatsComponent) {
-      this.displayStatsComponent.updateDisplay(); // Ensure the component reflects the current state
+    // Only update display if component exists and we're not frozen
+    if (this.displayStatsComponent && !this.isFrozen) {
+      this.displayStatsComponent.updateDisplay();
     }
   }
 
@@ -272,7 +346,10 @@ class Monster {
    */
   setDisplayStatsComponent(displayStatsComponent) {
     this.displayStatsComponent = displayStatsComponent;
-    this.updateDisplay();
+    // Only update display if not frozen
+    if (!this.isFrozen) {
+      this.updateDisplay();
+    }
   }
 
   /**
@@ -282,9 +359,9 @@ class Monster {
    * @param {Phaser.Scene} gameScene - The game scene.
    */
   feed(item, inventory, gameScene) {
-    if (this.mood === "dead") return;
+    if (this.mood === "dead" || !Array.isArray(inventory)) return;
 
-    console.log("Feeding the monster");
+    console.log("Feeding the monster with:", item);
 
     let hungerEffect = item.hungerAmount;
     let happinessEffect = item.happinessAmount;
@@ -386,7 +463,59 @@ class Monster {
    * @returns {Monster} - A new Monster instance.
    */
   static fromData(scene, data) {
-    return new Monster(scene, data);
+    if (!data) return null;
+
+    // Create initial data object with default values
+    const monsterData = {
+        _id: data._id || `temp_${Date.now()}`,
+        name: data.name || 'Unknown Monster',
+        type: data.type || 'normal',
+        favoriteFood: data.favoriteFood || 'Magic Berries',
+        imageURL: data.imageURL,
+        initialStats: data.initialStats || {
+            hunger: 80,
+            happiness: 70,
+            energy: 90,
+            hygiene: 60,
+            lifeSpan: 100
+        },
+        currentStats: data.currentStats || data.initialStats || {
+            hunger: 80,
+            happiness: 70,
+            energy: 90,
+            hygiene: 60,
+            lifeSpan: 100
+        },
+        isFrozen: data.isFrozen || false
+    };
+
+    // Create monster instance with the prepared data
+    const monster = new Monster(scene, monsterData);
+
+    // Handle image URL - ensure it has full server path
+    if (monster.imageURL && !monster.imageURL.startsWith('http')) {
+        monster.imageURL = `http://localhost:5000/${monster.imageURL}`;
+    }
+
+    // Create sprite if scene is available
+    if (scene && monster.imageURL) {
+        const textureKey = `monster_${monster._id}`;
+        
+        // Only load the texture if it doesn't exist or if we're forcing a reload
+        if (!scene.textures.exists(textureKey)) {
+            // Load the texture
+            scene.load.image(textureKey, monster.imageURL);
+            scene.load.once('complete', () => {
+                monster.createSprite(textureKey);
+            });
+            scene.load.start();
+        } else {
+            // If texture already exists, just create the sprite
+            monster.createSprite(textureKey);
+        }
+    }
+
+    return monster;
   }
 
   /**
@@ -401,10 +530,56 @@ class Monster {
       favoriteFood: this.favoriteFood,
       imageURL: this.imageURL,
       initialStats: this.initialStats,
-      currentStats: this.currentStats,
-      isFrozen: this.isFrozen,
-      // Add other properties as needed
+      currentStats: {
+        hunger: this.hunger,
+        happiness: this.happiness,
+        energy: this.energy,
+        hygiene: this.hygiene,
+        lifeSpan: this.lifeSpan
+      },
+      isFrozen: this.isFrozen
     };
+  }
+
+  cleanup() {
+    // Clear all timers
+    this.clearTimers();
+    
+    // Save current stats
+    this.currentStats = {
+      hunger: this.hunger,
+      happiness: this.happiness,
+      energy: this.energy,
+      hygiene: this.hygiene,
+      lifeSpan: this.lifeSpan
+    };
+    
+    // Cleanup sprite if it exists
+    if (this.sprite) {
+      this.sprite.destroy();
+      this.sprite = null;
+    }
+    
+    // Clear display component
+    this.displayStatsComponent = null;
+  }
+
+  // Update createSprite method to handle sprite creation more robustly
+  createSprite(textureKey) {
+    // Destroy existing sprite if it exists
+    if (this.sprite) {
+        this.sprite.destroy();
+    }
+
+    // Only create sprite if the texture exists
+    if (this.scene.textures.exists(textureKey)) {
+        this.sprite = this.scene.add.image(400, 300, textureKey);
+        this.sprite.setScale(0.4);
+    } else {
+        console.warn(`Texture ${textureKey} not found for monster ${this.name}`);
+    }
+
+    return this.sprite;
   }
 }
 

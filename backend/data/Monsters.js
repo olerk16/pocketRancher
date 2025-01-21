@@ -2,7 +2,7 @@ const Monsters = [
   {
     name: "bobby",
     type: "fungiGolem",
-    imageURL: "https://portal-monsters.s3.us-east-2.amazonaws.com/monsters/fungiGolem.png", // Lowercase `u`
+    imageURL: "backend/data/Assets/monsterImages/fungiGolem.png", // Lowercase `u`
     favoriteFood: "spicy pepper",
     initialStats: {
       hunger: 60,
@@ -15,7 +15,7 @@ const Monsters = [
   {
     name: "tom",
     type: "runeScarub",
-    imageURL: "https://portal-monsters.s3.us-east-2.amazonaws.com/monsters/runeScarub.png",
+    imageURL: "backend/data/Assets/monsterImages/runeScarub.png",
     favoriteFood: "watermelon",
     initialStats: {
       hunger: 50,
@@ -41,7 +41,7 @@ const Monsters = [
   {
     name: "rose",
     type: "shadowHound",
-    imageURL: "https://portal-monsters.s3.us-east-2.amazonaws.com/monsters/shadowHound.png",
+    imageURL: "backend/data/Assets/monsterImages/shadowHound.png",
     favoriteFood: "rock candy",
     initialStats: {
       hunger: 70,
@@ -54,7 +54,7 @@ const Monsters = [
   {
     name: "greg",
     type: "shepardKing",
-    imageURL: "https://portal-monsters.s3.us-east-2.amazonaws.com/monsters/shepardKing.png",
+    imageURL: "backend/data/Assets/monsterImages/shepardKing.png",
     favoriteFood: "rock candy",
     initialStats: {
       hunger: 70,

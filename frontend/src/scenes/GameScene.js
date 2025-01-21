@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import BaseScene from './BaseScene';
 import { createButton, createImageButton } from "../utils/uiUtils.js";
 import { startJourney } from "../utils/startJourney.js";
 import DropdownMenu from "../components/DropDownMenu.js";
@@ -7,92 +7,117 @@ import DialogComponent from '../components/DialogComponent.js';
 import Monster from "../models/Monster.js";
 import Player from '../models/Player.js';
 import AutoSave from '../utils/autoSave.js';
-import grassLandRanchImage from '../assets/images/backGrounds/grassLandRanch.webp';
+import { GameInventoryComponent } from '../components/GameInventoryComponent.js';
 
-console.log('grassLandRanchImage:', grassLandRanchImage);
-
-
-export default class GameScene extends Phaser.Scene {
+export default class GameScene extends BaseScene {
   constructor() {
-    super({ key: "GameScene" });
+    super('GameScene');
+    this.activeMonster = null;
+    this.monsterStatsComponent = null;
+    this.inventoryComponent = null;
+    this.dropdownMenu = null;
+    this.dialog = null;
+    this.autoSave = null;
+    this.descriptionText = null;
   }
 
-  // Lifecycle Methods
+  getBackgroundKey() {
+    return this.ranchLocation ? `${this.ranchLocation}Ranch` : 'grassLandRanch';
+  }
+
   init(data) {
+    this.initializePlayer(data);
+    this.initializeMonster();
+  }
+
+  initializePlayer(data) {
+    console.log('GameScene init with data:', data);
     this.player = Player.fromData(this, data.player);
-
-    console.log('Received player data in GameScene:', this.player);
-
-    if (this.player.activeMonster) {
-      console.log('Active Monster Data:', this.player.activeMonster);
-      this.activeMonster = Monster.fromData(this, this.player.activeMonster);
-  
-      // Update the player's activeMonster to the monster's _id
-      this.player.activeMonster = this.activeMonster._id;
-      console.log('Set player.activeMonster to:', this.player.activeMonster);
-    } else {
-      console.warn('No active monster found in player data.');
-      this.activeMonster = null;
-    }
-
+    
+    // Initialize scene properties from player data
     this.playerName = this.player.name;
     this.ranchName = this.player.ranchName;
     this.playerCoins = this.player.coins;
     this.inventory = this.player.inventory;
     this.ranchLocation = this.player.ranchLocation;
-
-    this.dialog = null;
-
+    
     console.log('Player object in GameScene:', this.player);
+  }
 
-    if (this.activeMonster) {
+  initializeMonster() {
+    if (this.player.activeMonster) {
+      console.log('Active Monster Data:', this.player.activeMonster);
+      
+      this.activeMonster = Monster.fromData(this, {
+        ...this.player.activeMonster,
+        currentStats: this.player.activeMonster.currentStats
+      });
+      
       this.activeMonster.scene = this;
+      this.scene.player = this.player;
+      this.player.activeMonster = this.activeMonster;
+      
       if (!this.activeMonster.isFrozen) {
         this.activeMonster.setupTimers();
       }
+      
+      console.log('Initialized monster with stats:', this.activeMonster.currentStats);
+    } else {
+      console.warn('No active monster found in player data.');
+      this.activeMonster = null;
+    }
+  }
+
+  setupSceneContent() {
+    this.addPlayerInfo();
+    this.setupMonster();
+    this.createDropdownMenu();
+    this.createInventoryWindow();
+    this.setupAutoSave();
+    this.adjustMonsterHappiness();
+  }
+
+  addPlayerInfo() {
+    this.add.text(16, 16, `Player: ${this.playerName}`, { fontSize: "16px", fill: "#FFF" });
+    this.add.text(16, 36, `Ranch: ${this.ranchName}`, { fontSize: "16px", fill: "#FFF" });
+  }
+
+  setupMonster() {
+    if (!this.activeMonster) return;
+
+    this.addMonsterToScene();
+    
+    if (!this.activeMonster.isFrozen) {
+      this.setupMovement();
+      this.setupMonsterStats();
     }
   }
 
   preload() {
-    this.load.image('grassLandRanch', grassLandRanchImage);
+    console.log('🎮 GameScene preload starting...');
+    
+    // Load ranch backgrounds
+    this.load.image('grassLandRanch', '/assets/images/backGrounds/grassLandRanch.webp');
+    this.load.image('desertRanch', '/assets/images/backGrounds/desertRanch.webp');
+    this.load.image('mountainRanch', '/assets/images/backGrounds/mountainRanch.webp');
 
-    // this.load.image('grassLandRanch', '/assets/images/backGrounds/grassLandRanch.webp');
-    // this.load.image('desertRanch', '/assets/images/backGrounds/desertRanch.webp');
-    // this.load.image('mountainRanch', '/assets/images/backGrounds/mountainRanch.webp');
-  
-    if (this.activeMonster && this.activeMonster.imageURL) {
-      console.log('Loading monster image:', this.activeMonster.imageURL);
-      this.load.image(`${this.activeMonster.type}Sprite`, this.activeMonster.imageURL);
+    // Load monster image if we have an active monster
+    if (this.player?.activeMonster) {
+        const monsterKey = `monster_${this.player.activeMonster._id}`;
+        if (!this.textures.exists(monsterKey)) {
+            console.log('Loading monster image:', this.player.activeMonster.imageURL);
+            this.load.image(monsterKey, this.player.activeMonster.imageURL);
+        }
     }
   }
 
   create() {
     this.setBackgroundImage();
-    this.addPlayerInfo();
+    this.setupSceneContent();
 
-    if (this.activeMonster) {
-      this.addMonsterToScene();
-      this.setupMovement();
-
-      // Initialize MonsterStatsComponent for displaying stats
-      this.monsterStatsComponent = new DisplayStatsComponent(this, this.activeMonster, this.player.coins, 16, 56);
-    } else {
-      console.log("No active monster to display or monster is frozen.");
+    if (this.inventoryComponent) {
+        this.inventoryComponent.toggle();
     }
-
-    this.createDropdownMenu();
-    this.createInventoryWindow();
-
-    // Initialize and start the autosave feature
-    this.autoSave = new AutoSave(this, this.player);
-    this.autoSave.startAutosave();
-
-    // Adjust monster's happiness based on the selected location
-    if (this.activeMonster && !this.activeMonster.isFrozen) {
-      this.activeMonster.adjustHappinessByLocation(this.ranchLocation);
-    }
-
-    this.inventoryWindow.setVisible(false);
   }
 
   update(time, delta) {
@@ -106,34 +131,45 @@ export default class GameScene extends Phaser.Scene {
 
   // Helper Methods
   setBackgroundImage() {
-    console.log(this.ranchLocation, "ranch location")
+    console.log('Setting background for location:', this.ranchLocation);
+    
     const backgroundImages = {
-      grassLand: "grassLandRanch",
-      desert: "desertRanch",
-      mountain: "mountainRanch",
+        grassLand: 'grassLandRanch',
+        desert: 'desertRanch',
+        mountain: 'mountainRanch'
     };
+
     const backgroundImageKey = backgroundImages[this.ranchLocation];
-    console.log(backgroundImageKey, "background key")
-    if (backgroundImageKey) {
-      this.currentBackground = this.add
-        .image(400, 300, backgroundImageKey)
-        .setOrigin(0.5);
-      this.currentBackground.displayWidth = this.sys.game.config.width;
-      this.currentBackground.displayHeight = this.sys.game.config.height;
+    console.log('Using background key:', backgroundImageKey);
+
+    if (backgroundImageKey && this.textures.exists(backgroundImageKey)) {
+        this.currentBackground = this.add
+            .image(400, 300, backgroundImageKey)
+            .setOrigin(0.5)
+            .setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
+        console.log('✅ Background set successfully');
     } else {
-      console.warn('No background image key found for ranch location:', this.ranchLocation);
+        console.warn('❌ Background not found:', backgroundImageKey);
+        console.log('Available textures:', Object.keys(this.textures.list));
     }
   }
 
-  addPlayerInfo() {
-    this.add.text(16, 16, `Player: ${this.playerName}`, { fontSize: "16px", fill: "#FFF" });
-    this.add.text(16, 36, `Ranch: ${this.ranchName}`, { fontSize: "16px", fill: "#FFF" });
-  }
-
   addMonsterToScene() {
-    if (this.activeMonster && !this.activeMonster.isFrozen) {
-      this.activeMonster.sprite = this.add.image(400, 300, `${this.activeMonster.type}Sprite`);
-      this.activeMonster.sprite.setScale(0.5);
+    if (!this.activeMonster) return;
+
+    // Clear any existing sprite
+    if (this.activeMonster.sprite) {
+        this.activeMonster.sprite.destroy();
+        this.activeMonster.sprite = null;
+    }
+
+    // Create new sprite
+    const monsterKey = `monster_${this.activeMonster._id}`;
+    this.activeMonster.sprite = this.add.image(400, 300, monsterKey);
+    this.activeMonster.sprite.setScale(0.5);
+    
+    if (!this.activeMonster.isFrozen) {
+        this.activeMonster.sprite.setVisible(true);
     }
   }
 
@@ -181,86 +217,51 @@ export default class GameScene extends Phaser.Scene {
   createInventoryWindow() {
     const windowHeight = this.scale.height;
     const windowWidth = this.scale.width;
-    const inventoryWidth = windowWidth - 100;
-
-    this.inventoryWindow = this.add.container(50, windowHeight - 100);
-
-    const background = this.add
-      .rectangle(0, 0, windowWidth - 100, 100, 0x000000, 0.5)
-      .setOrigin(0);
-
-    this.inventoryWindow.add(background);
-    this.populateInventorySlots();
-
-    const exitButton = this.add
-      .image(inventoryWidth - 20, 20, "exitButton")
-      .setScale(0.04)
-      .setAlpha(0.7)
-      .setInteractive({ useHandCursor: true });
-
-    exitButton.on("pointerdown", () => {
-      this.inventoryWindow.setVisible(false);
-    });
-
-    this.inventoryWindow.add(exitButton);
-  }
-
-  populateInventorySlots() {
-    this.inventorySlot = [];
-
-    for (let i = 0; i < this.inventory.length; i++) {
-      const item = this.inventory[i];
-      const slot = createImageButton(
+    
+    this.inventoryComponent = new GameInventoryComponent(
         this,
-        30 + i * 55,
-        50,
-        item.name,
-        () => this.activeMonster.feed(i, slot, this.inventory, this),
-        50,
-        50
-      );
+        550,    // x position
+        50,     // y position
+        220,    // width
+        400,    // height
+        this.player.inventory,
+        70,     // slot size
+        15,     // padding
+        0x2c3e50,  // background color
+        0x3498db,  // border color
+        this.useItem.bind(this),
+        this.showItemInfo.bind(this),
+        this.hideItemInfo.bind(this)
+    );
 
-      this.inventorySlot.push(slot);
-      this.inventoryWindow.add(slot);
+    // Set initial visibility to false
+    if (this.inventoryComponent) {
+        this.inventoryComponent.setVisible(false);
     }
-  }
-
-  resetInventorySlots() {
-    if (this.inventorySlot) {
-      this.inventorySlot.forEach(slot => slot.destroy());
-    }
-
-    this.inventorySlot = [];
-    this.populateInventorySlots();
   }
 
   toggleInventory() {
-    const isVisible = this.inventoryWindow.visible;
-    this.inventoryWindow.setVisible(!isVisible);
+    this.inventoryComponent.toggle();
   }
 
   goToMarket() {
-    this.scene.start("MarketBazaarScene", {
-      player: this.player,
-    });
+    this.handleSceneTransition("MarketBazaarScene");
   }
 
   goToFreezer() {
-    this.scene.start('FreezerScene', { player: this.player });
+    this.handleSceneTransition("FreezerScene");
   }
 
   goToMonsterPortal() {
-    this.scene.start('MonsterPortalScene');
+    this.handleSceneTransition("MonsterPortalScene");
   }
 
   viewCemetery() {
-    this.scene.start("MonsterCemeteryScene", {
-      deceasedMonsters: this.deceasedMonsters,
-    });
+    this.handleSceneTransition("MonsterCemeteryScene");
   }
 
   viewMap() {
-    this.scene.start("MapScene");
+    this.handleSceneTransition("MapScene");
   }
 
   showErrorDialog(message) {
@@ -279,9 +280,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   shutdown() {
+    this.cleanup();
     if (this.dropdownMenu) {
       this.dropdownMenu.removeMenu();
     }
+    super.shutdown();
   }
 
   useItem() {
@@ -296,6 +299,108 @@ export default class GameScene extends Phaser.Scene {
       this.activeMonster.updateDisplay();
     } else {
       alert("Inventory is empty or no active monster available!");
+    }
+  }
+
+  cleanup() {
+    this.cleanupMonster();
+    this.cleanupComponents();
+  }
+
+  cleanupMonster() {
+    if (this.activeMonster?.sprite) {
+      this.activeMonster.sprite.destroy();
+    }
+    
+    if (this.activeMonster?._id) {
+      const monsterKey = `monster_${this.activeMonster._id}`;
+      if (this.textures.exists(monsterKey)) {
+        this.textures.remove(monsterKey);
+      }
+    }
+  }
+
+  cleanupComponents() {
+    if (this.monsterStatsComponent) {
+      this.monsterStatsComponent.destroy();
+    }
+    if (this.dropdownMenu) {
+      this.dropdownMenu.removeMenu();
+    }
+    if (this.dialog) {
+      this.dialog.destroy();
+    }
+    if (this.inventoryComponent) {
+      this.inventoryComponent.destroy();
+    }
+  }
+
+  onMonsterDeath(monster) {
+    if (this.activeMonster === monster) {
+      this.activeMonster = null;
+    }
+
+    if (this.monsterStatsComponent) {
+      this.monsterStatsComponent.destroy();
+      this.monsterStatsComponent = null;
+    }
+
+    this.showErrorDialog(`${monster.name} has passed away.`);
+
+    if (this.autoSave) {
+      this.autoSave.saveGameState();
+    }
+  }
+
+  setupMonsterStats() {
+    this.monsterStatsComponent = new DisplayStatsComponent(
+      this, 
+      this.activeMonster, 
+      this.player.coins, 
+      16, 
+      56
+    );
+    
+    this.activeMonster.setDisplayStatsComponent(this.monsterStatsComponent);
+  }
+
+  setupAutoSave() {
+    this.autoSave = new AutoSave(this, this.player);
+    this.autoSave.startAutosave();
+  }
+
+  adjustMonsterHappiness() {
+    if (this.activeMonster && !this.activeMonster.isFrozen) {
+      this.activeMonster.adjustHappinessByLocation(this.ranchLocation);
+    }
+  }
+
+  handleSceneTransition(targetScene, extraData = {}) {
+    const sceneData = {
+      player: this.player,
+      ...extraData
+    };
+    this.scene.start(targetScene, sceneData);
+  }
+
+  showItemInfo(item) {
+    if (this.descriptionText) {
+        this.descriptionText.destroy();
+    }
+
+    this.descriptionText = this.add.text(10, 10, item.description, {
+        fontSize: '16px',
+        fill: '#ffffff',
+        backgroundColor: '#2c3e50',
+        padding: { x: 10, y: 5 },
+        wordWrap: { width: 300, useAdvancedWrap: true }
+    });
+  }
+
+  hideItemInfo() {
+    if (this.descriptionText) {
+        this.descriptionText.destroy();
+        this.descriptionText = null;
     }
   }
 }

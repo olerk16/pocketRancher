@@ -1,50 +1,42 @@
-import Phaser from 'phaser';
+import BaseScene from './BaseScene';
 import { createButton } from "../utils/uiUtils.js"; // Import the utility function
 import Player from "../models/Player.js";
 import InputComponent from "../components/InputComponent.js";
 import RanchLocationDropdown from "../components/RanchLocationDropdown.js"; // Import the new RanchLocationDropdown component
 import DialogComponent from "../components/DialogComponent.js"; // Import the new DialogComponent
 
-export default class PlayerSetupScene extends Phaser.Scene {
+export default class PlayerSetupScene extends BaseScene {
   constructor() {
-    super({ key: "PlayerSetupScene" });
+    super('PlayerSetupScene');
+    this.inputComponent = null;
+    this.dialog = null;
   }
 
-  preload() {
-    // Load assets for the player setup scene dynamically based on Monsters object
+  setupUI() {
+    // Don't call super.setupUI() as we don't want the back button
   }
 
-  create() {
-    // Initialize player instance
-    this.player = new Player("", ""); // Initialize with empty names, will be set by input fields
-    
-    new RanchLocationDropdown(this, this.player);
-    this.setupInputFields();
+  setupSceneContent() {
+    this.initializePlayer();
+    this.createInputFields();
+    this.createLocationDropdown();
+    this.createStartButton();
+    this.showWelcomeDialog();
+  }
 
-    // Create a button to confirm the setup and start the game
-    createButton(this, 400, 400, "Start Game", () => this.startGame()).setOrigin(0.5);
-
-    // Create a dialog component and display instructions
-    this.dialog = new DialogComponent(
-      this,
-      400,
-      300,
-      300,
-      150,
-      "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.",
-      "character"
-    );
-    this.dialog.showDialog(); // Show the dialog with the initial message
-
-    // Hide the dialog after 5 seconds if needed
-    this.time.delayedCall(5000, () => {
-      if (this.dialog) {
-        this.dialog.hideDialog();
-      }
+  initializePlayer() {
+    this.player = new Player(this, {
+      name: "",
+      ranchName: "",
+      coins: 100,
+      inventory: [],
+      monsters: [],
+      deceasedMonsters: [],
+      ranchLocation: 'grassLand'  // Set default ranch location
     });
   }
 
-  setupInputFields() {
+  createInputFields() {
     // Use InputComponent to create player and ranch name input fields
     this.inputComponent = new InputComponent(this, [
       {
@@ -62,60 +54,67 @@ export default class PlayerSetupScene extends Phaser.Scene {
     ]);
   }
 
-  startGame() {
-    if (this.player.name && this.player.ranchName) {
-      // Prepare player data to send to the server
-      const playerData = {
-        name: this.player.name,
-        ranchName: this.player.ranchName,
-        coins: this.player.coins,
-        inventory: this.player.inventory,
-        ranchLocation: this.player.ranchLocation,
-        monsters: this.player.monsters,
-        frozenMonsters: this.player.frozenMonsters,
-        activeMonster: this.player.activeMonster,
-      };
-
-      // Save player to MongoDB
-      this.createPlayer(playerData);
-
-      console.log(
-        `Player Name: ${this.player.name}, Ranch Name: ${this.player.ranchName}, Location: ${this.player.ranchLocation}`
-      );
-    } else {
-      alert("Please enter your name and ranch name.");
-    }
+  createLocationDropdown() {
+    new RanchLocationDropdown(this, this.player);
   }
 
-  async createPlayer(playerData) {
+  createStartButton() {
+    createButton(this, 400, 400, "Start Game", () => this.handleStartGame())
+      .setOrigin(0.5);
+  }
+
+  showWelcomeDialog() {
+    this.dialog = new DialogComponent(
+      this,
+      400,
+      300,
+      400,
+      150,
+      "Welcome to the game! Use the inputs to set up your character and ranch. Click 'Start Game' to begin.",
+      'trainerDave'  // Use the new trainer Dave image
+    );
+    this.dialog.showDialog();
+
+    // Hide the dialog after 5 seconds
+    this.time.delayedCall(5000, () => {
+      if (this.dialog) {
+        this.dialog.hideDialog();
+      }
+    });
+  }
+
+  async handleStartGame() {
+    if (!this.player.name || !this.player.ranchName) {
+      alert("Please enter your name and ranch name.");
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/players/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(playerData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(this.player.toJSON())
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save player");
-      }
+      if (!response.ok) throw new Error("Failed to save player");
 
       const data = await response.json();
-      console.log("Player saved successfully:", data);
-
-      // Update the client-side player object with the data returned from the server
-      this.player = data.data;
-
-      // Store the player ID in localStorage
-      localStorage.setItem('playerId', this.player._id);
-
-
-      // Start the GameScene with the updated player data
-      this.scene.start("GameScene", { player: this.player });
+      localStorage.setItem('playerId', data.data._id);
+      this.handleSceneTransition('GameScene', { player: data.data });
     } catch (error) {
       console.error("Error creating player:", error);
       alert("Failed to create player.");
+    }
+  }
+
+  cleanup() {
+    if (this.dialog) {
+      this.dialog.destroy();
+      this.dialog = null;
+    }
+    if (this.inputComponent) {
+      this.inputComponent.destroy();
+      this.inputComponent = null;
     }
   }
 }

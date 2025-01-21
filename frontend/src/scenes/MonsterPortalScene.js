@@ -1,145 +1,177 @@
-import Phaser from 'phaser';
-import { createButton } from '../utils/uiUtils.js'; // Adjust the path as needed
+import BaseScene from './BaseScene';
+import { createButton } from '../utils/uiUtils.js';
+import Monster from '../models/Monster.js';
+import Player from '../models/Player.js';
+import { OfferingSelection } from '../components/OfferingSelection.js';
+import { MonsterSummoner } from '../services/MonsterSummoner.js';
 
-export default class MonsterPortalScene extends Phaser.Scene {
+export default class MonsterPortalScene extends BaseScene {
   constructor() {
-    super({ key: 'MonsterPortalScene' });
+    super('MonsterPortalScene');
+    this.offeringSelection = null;
+    this.monsterSummoner = null;
   }
 
-  preload() {
-    // Load any assets you need for the scene here
+  getBackgroundKey() {
+    return 'portalBackground';
   }
 
-  create() {
-    console.log("creatingggg");
-    // Add background
-    this.add.image(400, 300, 'portalBackground');
+  init(data) {
+    if (!data || !data.player) {
+      console.error('No player data provided to MonsterPortalScene');
+      return;
+    }
+    this.player = Player.fromData(this, data.player);
+    console.log('MonsterPortalScene initialized with player:', this.player);
+  }
 
-    // Add title text
-    this.add.text(400, 100, 'Monster Portal', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5);
-
-    // Add a summon button
+  setupSceneContent() {
+    this.createTitle();
+    this.setupOfferingSelection();
     this.createSummonButton();
+    this.monsterSummoner = new MonsterSummoner(this);
+  }
 
-    // Add a back button to return to the main game scene
-    this.createBackButton();
+  createTitle() {
+    this.add.text(400, 100, 'Monster Portal', { 
+        fontSize: '32px', 
+        fill: '#FFF' 
+    }).setOrigin(0.5);
+  }
+
+  setupOfferingSelection() {
+    if (this.player && this.player.hasOfferings()) {
+        const offerings = this.player.getOfferings();
+        if (offerings.length > 0) {
+            this.offeringSelection = new OfferingSelection(
+                this, 
+                offerings,
+                this.handleOfferingSelected.bind(this)
+            );
+        }
+    }
+  }
+
+  handleOfferingSelected(offering) {
+    console.log('Selected offering:', offering); // Debug log
+    if (offering) {
+        this.player.removeOffering(offering);
+        this.summonMonster(offering);
+    }
   }
 
   createSummonButton() {
     createButton(this, 400, 300, 'Summon Monster', () => this.summonMonster());
   }
 
-  createBackButton() {
-    createButton(this, 700, 50, 'Back', () => this.scene.start('GameScene'));
-  }
-
-  // async summonMonster() {
-  //   // Display loading text
-  //   const loadingText = this.add.text(400, 300, 'Summoning...', { fontSize: '24px', fill: '#FFF' }).setOrigin(0.5);
-  
-  //   try {
-  //     const response = await fetch('http://localhost:5000/monsters/generate-monster', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //     });
-  
-  //     if (!response.ok) throw new Error('Failed to fetch from server');
-  
-  //     // The response is an image, so handle it as a Blob
-  //   const blob = await response.blob();
-  //   const imageUrl = URL.createObjectURL(blob); // Create a local URL for the Blob
-
-  //   console.log('Monster Image URL:', imageUrl);
-  
-  //     // Remove loading text
-  //     loadingText.destroy();
-  
-  //     // Load the monster image dynamically
-  //     this.load.image('monsterImage', imageUrl);
-  //     this.load.once('complete', () => {
-  //       // Display the monster image
-  //       this.add.image(400, 300, 'monsterImage').setOrigin(0.5).setScale(0.4);
-  
-  //       // Display monster stats on screen
-  //       this.displayMonsterStats(stats);
-  //     });
-  //     this.load.start();
-  
-  //     // Save monster data to the player's monsters (assuming player exists in the scene)
-  //     if (this.player) {
-  //       this.player.addMonster({
-  //         name: 'Random Monster', // Can use a dynamic name here if desired
-  //         imageUrl: imageUrl,     // URL of the monster's image
-  //         stats: stats            // Stats object
-  //       });
-  //       console.log('New monster added to player:', this.player.monsters);
-  //     }
-  
-  //   } catch (error) {
-  //     console.error('Error summoning monster:', error);
-  //     loadingText.setText('Failed to summon monster');
-  //   }
-  // }
-
-  async summonMonster() {
-    // Display loading text
-    const loadingText = this.add.text(400, 300, 'Summoning...', { fontSize: '24px', fill: '#FFF' }).setOrigin(0.5);
+  async summonMonster(offering = null) {
+    const loadingText = this.add.text(400, 300, 'Summoning...', { 
+        fontSize: '24px', 
+        fill: '#FFF' 
+    }).setOrigin(0.5);
   
     try {
-      const response = await fetch('http://localhost:5000/monsters/generate-monster', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        // Create request body with proper offering data
+        const requestBody = {
+            playerName: this.player.name,
+            offering: offering ? offering.name : null,
+            offeringDetails: offering ? {
+                prompt: offering.prompt,
+                rarity: offering.rarity,
+                monsterTypes: offering.monsterTypes
+            } : null
+        };
 
-      if (!response.ok) throw new Error('Failed to fetch from server');
+        console.log('Sending request with body:', requestBody);
 
-      const monsterData = await response.json(); // Get JSON data, which contains image URL and stats
-      console.log('Monster Data:', monsterData);
-
-      const { imageUrl, stats, uniqueKey } = monsterData;
-
-      // Remove loading text
-      loadingText.destroy();
-
-      // Clear the previous image cache using the unique key
-      if (this.textures.exists(uniqueKey)) {
-        this.textures.remove(uniqueKey);
-    }
-
-      // Load the new monster image dynamically with the unique key from backend
-      this.load.image(uniqueKey, imageUrl);
-      this.load.once('complete', () => {
-          // Display the monster image
-          this.add.image(400, 300, uniqueKey).setOrigin(0.5).setScale(0.4);
-
-        // Display monster stats using the new method
-        // this.displayMonsterStats(stats);
-      });
-      this.load.start();
-
-      // Display the monster image
-      this.add.image(400, 300, imageUrl).setOrigin(0.5).setScale(0.4);
-
-      // Save monster data to the player (assuming player object exists)
-      if (this.player) {
-        this.player.addMonster({
-          name: monsterData.name,
-          imageUrl: imageUrl, // URL of the monster's image
-          stats: stats, // Stats object
-          uniqueKey: uniqueKey // Store unique key
+        const response = await fetch('http://localhost:5000/api/monsters/generate-monster', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
         });
-        console.log('New monster added to player:', this.player.monsters);
-      }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const monsterData = await response.json();
+        console.log('Received monster data:', monsterData);
+
+        // Remove loading text
+        loadingText.destroy();
+
+        // Generate a unique texture key for this monster
+        const textureKey = `monster_${monsterData.uniqueKey}`;
+
+        // Clear any existing texture with this key
+        if (this.textures.exists(textureKey)) {
+            this.textures.remove(textureKey);
+        }
+
+        // Load the monster image with full URL
+        const imageUrl = `http://localhost:5000/${monsterData.imageUrl}`;
+        this.load.image(textureKey, imageUrl);
+        
+        // Wait for the image to load
+        this.load.once('complete', () => {
+            // Display the monster image
+            const monsterImage = this.add.image(400, 300, textureKey)
+                .setOrigin(0.5)
+                .setScale(0.4);
+
+            // Create the monster object with proper structure
+            const newMonster = {
+                name: monsterData.name,
+                type: monsterData.type,
+                favoriteFood: monsterData.favoriteFood,
+                imageURL: monsterData.imageUrl, // Store the relative path
+                initialStats: monsterData.stats,
+                currentStats: monsterData.stats,
+                _id: monsterData.uniqueKey,
+                sprite: null,  // Will be created in GameScene
+                types: monsterData.types // Include monster types
+            };
+
+            // Add "Keep Monster" button
+            createButton(this, 400, 450, 'Keep Monster', () => {
+                if (this.player) {
+                    // Create a proper Monster instance
+                    const monster = Monster.fromData(this, newMonster);
+                    
+                    // Add to player's monsters array
+                    this.player.monsters.push(monster);
+                    
+                    // Set as active monster if none exists
+                    if (!this.player.activeMonster) {
+                        this.player.activeMonster = monster;
+                    }
+
+                    console.log('Added new monster to player:', monster);
+                    
+                    // Transition to GameScene with updated player data
+                    this.scene.start('GameScene', { 
+                        player: this.player.toJSON()
+                    });
+                } else {
+                    console.error('No player data available');
+                }
+            });
+        });
+
+        this.load.start();
 
     } catch (error) {
-      console.error('Error summoning monster:', error);
-      loadingText.setText('Failed to summon monster');
+        console.error('Error summoning monster:', error);
+        loadingText.setText('Failed to summon monster. Try again?');
+        
+        createButton(this, 400, 350, 'Retry', () => {
+            loadingText.destroy();
+            this.summonMonster();
+        });
     }
-}
+  }
 
   update(time, delta) {
     // Update logic if needed

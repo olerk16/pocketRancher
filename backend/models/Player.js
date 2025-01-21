@@ -11,9 +11,14 @@ const playerSchema = new Schema({
   ranchLocation: { type: String, default: "grassLand" },
   monsters: [{ type: Schema.Types.ObjectId, ref: 'Monster' }], // Referencing Monster model
   activeMonster: { type: Schema.Types.ObjectId, ref: 'Monster' }, // Reference to active monster
-  frozenMonsters: [{ type: Schema.Types.ObjectId, ref: 'Monster' }] 
-
-
+  frozenMonsters: [{ type: Schema.Types.ObjectId, ref: 'Monster' }],
+  deceasedMonsters: [{
+    name: String,
+    type: String,
+    deathDate: String,
+    causeOfDeath: String,
+    imageURL: String
+  }]
 });
 
 const Player = mongoose.model('Player', playerSchema);

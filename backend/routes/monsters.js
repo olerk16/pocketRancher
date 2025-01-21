@@ -4,6 +4,9 @@ const Monster = require('../models/Monster');
 // const { generateMonster } = require('../controllers/monsterController');
 const monsterController = require('../controllers/monsterController');
 
+// Move the generate-monster route to the top for clarity
+router.post('/generate-monster', monsterController.generateMonster);
+
 // Route to create a new monster
 router.post('/create', async (req, res) => {
   const { name, favoriteFood, hunger, happiness, energy, hygiene, lifeSpan, imageUrl } = req.body;
@@ -19,10 +22,6 @@ router.post('/create', async (req, res) => {
 
 // Route to get a monster by type
 router.get('/monsters/:type', monsterController.getMonsterByType);
-
-
-// POST /generate-monster
-router.post('/generate-monster', monsterController.generateMonster);
 
 // Route to get all monsters
 router.get('/', async (req, res) => {

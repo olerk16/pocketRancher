@@ -1,208 +1,207 @@
-import Phaser from 'phaser';
-import { InventoryComponent } from "../components/InventoryComponent.js";
+import BaseScene from './BaseScene';
 import { createButton } from "../utils/uiUtils.js";
+import { MonsterInventoryComponent } from '../components/MonsterInventoryComponent.js';
 
-export default class FreezerScene extends Phaser.Scene {
-  constructor() {
-    super({ key: "FreezerScene" });
-    this.selectedMonsters = []; // Initialize with no selection
-    this.freezeCombineButton = null;
-    this.currentModeText = null;
-    this.modes = Object.freeze({
-      UNFREEZE: "UNFREEZE",
-      COMBINE: "COMBINE",
-    });
-    this.currentMode = this.modes.UNFREEZE;
-  }
-
-  init(data) {
-    this.player = data.player; // Retrieve player data from GameScene
-  }
-
-  preload() {
-    this.load.image("freezer", "assets/images/backGrounds/freezer.webp");
-    console.log("forzeen monster", this.player)
-  }
-  
-  create() {
-    this.add.image(400, 300, "freezer");
-
-    this.inventoryComponent = new InventoryComponent(
-      this,
-      100,
-      100,
-      620,
-      150,
-      frozenMonsters,
-      100,
-      20,
-      0xbfe0ff,
-      0x3fa1fc,
-      this.OnMonsterSlotClicked.bind(this), // Callback for item click
-      this.showInfo.bind(this), // Callback for item hover
-      this.hideInfo.bind(this) // Callback for item out
-    );
-    // Create a text object to display the item description
-    this.descriptionText = this.add
-      .text(10, 10, "", {
-        fontSize: "16px",
-        fill: "#ffffff",
-        backgroundColor: "#8B4513",
-        padding: { x: 10, y: 5 },
-        wordWrap: { width: 300, useAdvancedWrap: true },
-      })
-      .setVisible(false); // Initially hidden
-    this.addButtons();
-  }
-  addButtons() {
-    this.add
-      .text(400, 50, "Monster Freezer", { fontSize: "32px", fill: "#000" })
-      .setOrigin(0.5);
-
-    this.currentModeText = this.add
-      .text(400, 500, `${this.currentMode}`, { fontSize: "32px", fill: "#000" })
-      .setOrigin(0.5);
-    createButton(this, 400, 450, "Back", () => {
-      this.scene.start("GameScene", { player: this.player }); // Pass player data back to GameScene
-    }).setOrigin(.5);
-
-    createButton(this, 400, 400, "Freeze", () => {
-      this.freezeMonster();
-    }).setOrigin(.5);
-
-    this.freezeCombineButton = createButton(
-      this,
-      400,
-      350,
-      "Change to unfreeze mode",
-      () => {
-        this.changeMode();
-      }
-    ).setOrigin(.5);
-  }
-  changeMode() {
-    if (this.currentMode === this.modes.UNFREEZE) {
-      this.currentMode = this.modes.COMBINE;
-      this.freezeCombineButton.setText("Change to combine mode");
-    } else {
-      this.currentMode = this.modes.UNFREEZE;
-      this.freezeCombineButton.setText("Change to unfreeze mode");
-    }
-    this.selectedMonsters = [];
-    this.updateInventory()
-    this.currentModeText.text = this.currentMode;
-  }
-
-  freezeMonster() {
-    const activeMonster = this.player.getActiveMonster();
-    if (activeMonster) {
-      this.player.freezeMonster(activeMonster); // Freeze the active monster
-      
-      this.updateInventory() // Update inventory display after freezing
-    } else {
-      alert("No active monster to freeze.");
-    }
-  }
-
-  OnMonsterSlotClicked(selectedMonster) {
-    if (selectedMonster === null || this.player.activeMonster !== null) {
-      return;
+export default class FreezerScene extends BaseScene {
+    constructor() {
+        super('FreezerScene');
+        this.selectedMonsters = [];
+        this.freezeCombineButton = null;
+        this.currentModeText = null;
+        this.modes = Object.freeze({
+            UNFREEZE: "UNFREEZE",
+            COMBINE: "COMBINE",
+        });
+        this.currentMode = this.modes.UNFREEZE;
     }
 
-    const frozenMonsters = this.player.getFrozenMonsters();
-    const selectedIndex = frozenMonsters.indexOf(selectedMonster);
-
-    if (this.currentMode === this.modes.UNFREEZE) {
-      this.unfreezeMonster(selectedMonster);
-    } else {
-      this.handleMonsterSelection(
-        selectedMonster,
-        selectedIndex,
-        frozenMonsters
-      );
+    getBackgroundKey() {
+        return 'freezer';
     }
-  }
 
-  unfreezeMonster(selectedMonster) {
-    this.player.activeMonster = selectedMonster;
-    console.log(`Unfroze ${selectedMonster}`);
-    this.player.unfreezeMonster(selectedMonster);
-    this.updateInventory();
-  }
+    init(data) {
+        this.player = data.player;
+    }
 
-  handleMonsterSelection(selectedMonster, selectedIndex, frozenMonsters) {
-    if (this.isSameMonsterSelectedTwice(selectedMonster)) {
-      this.resetSelection(frozenMonsters);
-    } else {
-      this.addMonsterToSelection(selectedMonster, selectedIndex);
+    setupSceneContent() {
+        this.createTitle();
+        this.createInventoryComponent();
+        this.createDescriptionText();
+        this.createModeControls();
+    }
 
-      if (this.selectedMonsters.length === 2) {
-        console.log(
-          "Selected two different monsters. Now you can combine them."
+    createTitle() {
+        this.add
+            .text(400, 50, "Monster Freezer", { fontSize: "32px", fill: "#000" })
+            .setOrigin(0.5);
+    }
+
+    createInventoryComponent() {
+        this.inventoryComponent = new MonsterInventoryComponent(
+            this,
+            100,
+            100,
+            620,
+            200,  // Taller for monster display
+            this.player.getFrozenMonsters(),
+            100,
+            20,
+            0x222222,
+            0x444444,
+            this.OnMonsterSlotClicked.bind(this),
+            this.showInfo.bind(this),
+            this.hideInfo.bind(this)
         );
-        this.resetSelection(frozenMonsters); // Reset the selection after combining or performing any action
-      }
     }
-  }
 
-  isSameMonsterSelectedTwice(selectedMonster) {
-    return (
-      this.selectedMonsters.length > 0 &&
-      this.selectedMonsters[this.selectedMonsters.length - 1] ===
-        selectedMonster
-    );
-  }
-
-  resetSelection(frozenMonsters) {
-    console.log("Same monster selected twice. Resetting selection.");
-    this.selectedMonsters = [];
-    this.updateInventory();
-  }
-
-  addMonsterToSelection(selectedMonster, selectedIndex) {
-    this.selectedMonsters.push(selectedMonster);
-
-    if (selectedIndex !== -1) {
-      this.inventoryComponent.highlightSlot(selectedIndex);
-    } else {
-      console.log("Monster not found in the current inventory");
+    createDescriptionText() {
+        this.descriptionText = this.add
+            .text(10, 10, "", {
+                fontSize: "16px",
+                fill: "#ffffff",
+                backgroundColor: "#8B4513",
+                padding: { x: 10, y: 5 },
+                wordWrap: { width: 300, useAdvancedWrap: true },
+            })
+            .setVisible(false);
     }
-  }
 
-  updateInventory() {
-    const updatedFrozenMonsters = this.player.getFrozenMonsters();
-    this.inventoryComponent.updateInventory(updatedFrozenMonsters);
-  }
+    createModeControls() {
+        this.currentModeText = this.add
+            .text(400, 500, `${this.currentMode}`, { fontSize: "32px", fill: "#000" })
+            .setOrigin(0.5);
 
-  combineMonster() {
-    // Implement logic for combining monsters (if needed)
-  }
+        createButton(this, 400, 400, "Freeze", () => {
+            this.freezeMonster();
+        }).setOrigin(.5);
 
-  showInfo(monster) {
-    // Update the text content
-    this.descriptionText.setText(monster.type);
+        this.freezeCombineButton = createButton(
+            this,
+            400,
+            350,
+            "Change to unfreeze mode",
+            () => this.changeMode()
+        ).setOrigin(.5);
+    }
 
-    // Get the width and height of the game canvas
-    const { width, height } = this.scale;
+    changeMode() {
+        if (this.currentMode === this.modes.UNFREEZE) {
+            this.currentMode = this.modes.COMBINE;
+            this.freezeCombineButton.setText("Change to combine mode");
+        } else {
+            this.currentMode = this.modes.UNFREEZE;
+            this.freezeCombineButton.setText("Change to unfreeze mode");
+        }
+        this.selectedMonsters = [];
+        this.updateInventory();
+        this.currentModeText.text = this.currentMode;
+    }
 
-    // Calculate the position for the bottom-right corner
-    const textWidth = this.descriptionText.width;
-    const textHeight = this.descriptionText.height;
+    freezeMonster() {
+        const activeMonster = this.player.getActiveMonster();
+        if (activeMonster) {
+            this.player.freezeMonster(activeMonster);
+            this.updateInventory();
+        } else {
+            alert("No active monster to freeze.");
+        }
+    }
 
-    const posX = width - textWidth - 20; // 20px padding from the right
-    const posY = height - textHeight - 20; // 20px padding from the bottom
+    OnMonsterSlotClicked(selectedMonster) {
+        if (selectedMonster === null || this.player.activeMonster !== null) {
+            return;
+        }
 
-    // Set the position of the text
-    this.descriptionText.setPosition(posX - 200, posY);
+        const frozenMonsters = this.player.getFrozenMonsters();
+        const selectedIndex = frozenMonsters.indexOf(selectedMonster);
 
-    // Make the text visible
-    this.descriptionText.setVisible(true);
-  }
+        if (this.currentMode === this.modes.UNFREEZE) {
+            this.unfreezeMonster(selectedMonster);
+        } else {
+            this.handleMonsterSelection(selectedMonster, selectedIndex, frozenMonsters);
+        }
+    }
 
-  hideInfo() {
-    // Hide the description text
-    this.descriptionText.setVisible(false);
-  }
+    unfreezeMonster(selectedMonster) {
+        console.log(`Unfreezing ${selectedMonster.name} with stats:`, selectedMonster.currentStats);
+        this.player.unfreezeMonster(selectedMonster);
+        this.updateInventory();
+    }
 
-  update() {}
+    handleMonsterSelection(selectedMonster, selectedIndex, frozenMonsters) {
+        if (this.isSameMonsterSelectedTwice(selectedMonster)) {
+            this.resetSelection(frozenMonsters);
+        } else {
+            this.addMonsterToSelection(selectedMonster, selectedIndex);
+
+            if (this.selectedMonsters.length === 2) {
+                this.combineMonsters();
+                this.resetSelection(frozenMonsters);
+            }
+        }
+    }
+
+    isSameMonsterSelectedTwice(selectedMonster) {
+        return (
+            this.selectedMonsters.length > 0 &&
+            this.selectedMonsters[this.selectedMonsters.length - 1] === selectedMonster
+        );
+    }
+
+    resetSelection() {
+        this.selectedMonsters = [];
+        this.updateInventory();
+    }
+
+    addMonsterToSelection(selectedMonster, selectedIndex) {
+        this.selectedMonsters.push(selectedMonster);
+        if (selectedIndex !== -1) {
+            this.inventoryComponent.highlightSlot(selectedIndex);
+        }
+    }
+
+    updateInventory() {
+        const updatedFrozenMonsters = this.player.getFrozenMonsters();
+        this.inventoryComponent.updateInventory(updatedFrozenMonsters);
+    }
+
+    showInfo(monster) {
+        if (!monster) return;
+
+        const infoText = [
+            `Name: ${monster.name}`,
+            `Type: ${monster.type}`,
+            `Life: ${monster.getLifeSpanPercentage()}`,
+            `Hunger: ${monster.currentStats.hunger}`,
+            `Happiness: ${monster.currentStats.happiness}`,
+            `Energy: ${monster.currentStats.energy}`,
+            `Hygiene: ${monster.currentStats.hygiene}`
+        ].join('\n');
+
+        this.descriptionText.setText(infoText);
+        this.positionDescriptionText();
+        this.descriptionText.setVisible(true);
+    }
+
+    positionDescriptionText() {
+        const { width, height } = this.scale;
+        const textWidth = this.descriptionText.width;
+        const textHeight = this.descriptionText.height;
+        const posX = width - textWidth - 220;
+        const posY = height - textHeight - 20;
+        this.descriptionText.setPosition(posX, posY);
+    }
+
+    hideInfo() {
+        this.descriptionText.setVisible(false);
+    }
+
+    cleanup() {
+        if (this.inventoryComponent) {
+            this.inventoryComponent.destroy();
+        }
+        if (this.descriptionText) {
+            this.descriptionText.destroy();
+        }
+    }
 }

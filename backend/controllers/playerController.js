@@ -5,18 +5,17 @@ const Monster = require('../models/Monster');
 exports.createPlayer = async (req, res) => {
   console.log("Incoming Player Data:", req.body);
   try {
-    const { name, ranchName, coins, inventory, ranchLocation } = req.body;
+    const { name, ranchName, coins, inventory, ranchLocation, deceasedMonsters } = req.body;
 
     // Find or create the default 'shadowHound' monster
     let shadowHound = await Monster.findOne({ type: 'shadowHound' });
 
     if (!shadowHound) {
-      // Optional: Create `shadowHound` if it doesn't exist
       shadowHound = new Monster({
         name: 'Shadow Hound',
         type: 'shadowHound',
         favoriteFood: 'Magic Berries',
-        imageURL: 'https://path-to-s3-image/shadowHound.png', // Replace with actual URL
+        imageURL: 'https://path-to-s3-image/shadowHound.png',
         initialStats: {
           hunger: 80,
           happiness: 70,
@@ -24,35 +23,48 @@ exports.createPlayer = async (req, res) => {
           hygiene: 60,
           lifeSpan: 100,
         },
+        currentStats: {  // Add currentStats explicitly
+          hunger: 80,
+          happiness: 70,
+          energy: 90,
+          hygiene: 60,
+          lifeSpan: 100,
+        }
       });
       await shadowHound.save();
     }
 
-    // Clone the `shadowHound` to assign to the new player
+    // Clone the shadowHound but preserve any existing stats
     const playerMonster = new Monster({
       ...shadowHound.toObject(),
-      _id: new mongoose.Types.ObjectId(),  // New ObjectId for this instance
+      _id: new mongoose.Types.ObjectId(),
+      currentStats: shadowHound.currentStats || shadowHound.initialStats  // Preserve current stats
     });
     await playerMonster.save();
 
-    // Create the new player and set `shadowHound` as the active monster
     const newPlayer = new Player({
       name,
       ranchName,
       coins: coins || 1000,
       inventory: inventory || [],
       ranchLocation: ranchLocation || 'grassLand',
-      monsters: [playerMonster._id], // Include cloned monster in monsters
-      activeMonster: playerMonster._id // Set as active monster
+      monsters: [playerMonster._id],
+      activeMonster: playerMonster._id,
+      deceasedMonsters: deceasedMonsters || []
     });
 
     await newPlayer.save();
 
     // Populate the player data with full monster details
-    const populatedPlayer = await Player.findById(newPlayer._id).populate('activeMonster').exec();
+    const populatedPlayer = await Player.findById(newPlayer._id)
+      .populate({
+        path: 'activeMonster',
+        select: '-__v',  // Exclude version key
+        model: 'Monster'
+      })
+      .exec();
 
-    console.log("Populated Player Data:", populatedPlayer); // Log the response to verify
-
+    console.log("Populated Player Data:", populatedPlayer);
 
     res.status(201).json({ success: true, data: populatedPlayer });
   } catch (error) {
