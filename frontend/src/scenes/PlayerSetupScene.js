@@ -32,7 +32,7 @@ export default class PlayerSetupScene extends BaseScene {
       inventory: [],
       monsters: [],
       deceasedMonsters: [],
-      ranchLocation: 'grassLand'  // Set default ranch location
+      ranchLocation: null  // Set default ranch location
     });
   }
 
@@ -84,26 +84,54 @@ export default class PlayerSetupScene extends BaseScene {
   }
 
   async handleStartGame() {
-    if (!this.player.name || !this.player.ranchName) {
-      alert("Please enter your name and ranch name.");
-      return;
-    }
-
     try {
-      const response = await fetch("http://localhost:5000/api/players/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(this.player.toJSON())
+      // Create player data with ranch location
+      const playerData = {
+        name: this.player.name,
+        ranchName: this.player.ranchName,
+        ranchLocation: this.player.ranchLocation || 'grassLand' // Set default if not selected
+      };
+
+      // Send request to create player
+      const response = await fetch('http://localhost:5000/api/players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(playerData)
       });
 
-      if (!response.ok) throw new Error("Failed to save player");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
-      localStorage.setItem('playerId', data.data._id);
-      this.handleSceneTransition('GameScene', { player: data.data });
+      
+      // Check if we have a valid player object
+      if (!data || !data._id) {
+        console.error('Invalid player data received:', data);
+        throw new Error('Invalid player data received from server');
+      }
+
+      // Initialize player in the game with ranch location
+      this.player = Player.fromData(this, data);
+
+      // Save player ID to local storage
+      localStorage.setItem('playerId', this.player._id);
+
+      // Transition to game scene with player data
+      this.handleSceneTransition('GameScene', { player: this.player });
+
     } catch (error) {
-      console.error("Error creating player:", error);
-      alert("Failed to create player.");
+      console.error('Error creating player:', error);
+      // Show error message to user
+      if (this.errorText) {
+        this.errorText.destroy();
+      }
+      this.errorText = this.add.text(400, 500, 'Error creating player. Please try again.', {
+        fontSize: '16px',
+        fill: '#ff0000'
+      }).setOrigin(0.5);
     }
   }
 

@@ -16,6 +16,8 @@ class DialogComponent {
 
     // Create dialog elements
     this.createDialog();
+
+    this._visible = false;
   }
 
   createDialog() {
@@ -80,13 +82,14 @@ class DialogComponent {
 
   showDialog(message) {
     if (message) {
-      this.message = message; // Update the message if provided
+      this.message = message;
       this.text.setText(this.message);
     }
     this.graphics.setVisible(true);
     this.text.setVisible(true);
     this.closeButton.setVisible(true);
-    this.characterImage.setVisible(true); // Show the image as well
+    this.characterImage.setVisible(true);
+    this._visible = true;
   }
 
   hideDialog() {
@@ -94,9 +97,22 @@ class DialogComponent {
       this.graphics.setVisible(false);
       this.text.setVisible(false);
       this.closeButton.setVisible(false);
-      this.characterImage.setVisible(false); // Hide the image as well
+      this.characterImage.setVisible(false);
+      this._visible = false;
     } else {
       console.error("DialogComponent elements are not initialized correctly.");
+    }
+  }
+
+  isVisible() {
+    return this._visible;
+  }
+
+  toggle() {
+    if (this.isVisible()) {
+      this.hideDialog();
+    } else {
+      this.showDialog();
     }
   }
 

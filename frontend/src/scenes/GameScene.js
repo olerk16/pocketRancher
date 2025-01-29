@@ -8,6 +8,9 @@ import Monster from "../models/Monster.js";
 import Player from '../models/Player.js';
 import AutoSave from '../utils/autoSave.js';
 import { GameInventoryComponent } from '../components/GameInventoryComponent.js';
+import StatusEffectsComponent from '../components/StatusEffectsComponent.js';
+import PlayerInfoComponent from '../components/PlayerInfoComponent.js';
+import Offerings from '../models/Offerings.js';
 
 export default class GameScene extends BaseScene {
   constructor() {
@@ -19,14 +22,24 @@ export default class GameScene extends BaseScene {
     this.dialog = null;
     this.autoSave = null;
     this.descriptionText = null;
+    this.statusEffectsComponent = null;
+    this.playerInfoComponent = null;
   }
 
   getBackgroundKey() {
-    return this.ranchLocation ? `${this.ranchLocation}Ranch` : 'grassLandRanch';
+    console.log('Getting background for location:', this.player?.ranchLocation);
+    const location = this.player?.ranchLocation || 'grassLand';
+    return `${location}Ranch`;
   }
 
   init(data) {
-    this.initializePlayer(data);
+    console.log('GameScene init with data:', data);
+    if (data && data.player) {
+        this.player = Player.fromData(this, data.player);
+        console.log('Player initialized with location:', this.player.ranchLocation);
+    } else {
+        console.error('No player data provided to GameScene');
+    }
     this.initializeMonster();
   }
 
@@ -69,17 +82,23 @@ export default class GameScene extends BaseScene {
   }
 
   setupSceneContent() {
-    this.addPlayerInfo();
+    this.createPlayerInfo();
     this.setupMonster();
     this.createDropdownMenu();
     this.createInventoryWindow();
     this.setupAutoSave();
     this.adjustMonsterHappiness();
+    
+    // Show welcome dialog only for new players who haven't seen it
+    if (!this.player.activeMonster && 
+        this.player.inventory.length === 0 && 
+        !this.player.hasSeenWelcome) {
+        this.showWelcomeDialog();
+    }
   }
 
-  addPlayerInfo() {
-    this.add.text(16, 16, `Player: ${this.playerName}`, { fontSize: "16px", fill: "#FFF" });
-    this.add.text(16, 36, `Ranch: ${this.ranchName}`, { fontSize: "16px", fill: "#FFF" });
+  createPlayerInfo() {
+    this.playerInfoComponent = new PlayerInfoComponent(this, this.player);
   }
 
   setupMonster() {
@@ -90,16 +109,12 @@ export default class GameScene extends BaseScene {
     if (!this.activeMonster.isFrozen) {
       this.setupMovement();
       this.setupMonsterStats();
+      this.setupStatusEffects();
     }
   }
 
   preload() {
-    console.log('🎮 GameScene preload starting...');
-    
-    // Load ranch backgrounds
-    this.load.image('grassLandRanch', '/assets/images/backGrounds/grassLandRanch.webp');
-    this.load.image('desertRanch', '/assets/images/backGrounds/desertRanch.webp');
-    this.load.image('mountainRanch', '/assets/images/backGrounds/mountainRanch.webp');
+    super.preload();
 
     // Load monster image if we have an active monster
     if (this.player?.activeMonster) {
@@ -112,45 +127,37 @@ export default class GameScene extends BaseScene {
   }
 
   create() {
-    this.setBackgroundImage();
+    super.create();
+    this.setBackground();
     this.setupSceneContent();
-
-    if (this.inventoryComponent) {
-        this.inventoryComponent.toggle();
-    }
   }
 
   update(time, delta) {
     if (this.activeMonster && !this.activeMonster.isFrozen) {
       // Update monster's position
       this.activeMonster.updatePosition(delta);
-      // Optionally update the display if necessary
-      // this.activeMonster.updateDisplay();
+      if (this.statusEffectsComponent) {
+        this.statusEffectsComponent.updateEffects();
+      }
     }
   }
 
   // Helper Methods
-  setBackgroundImage() {
-    console.log('Setting background for location:', this.ranchLocation);
+  setBackground() {
+    const bgKey = this.getBackgroundKey();
+    console.log('Setting background with key:', bgKey);
     
-    const backgroundImages = {
-        grassLand: 'grassLandRanch',
-        desert: 'desertRanch',
-        mountain: 'mountainRanch'
-    };
-
-    const backgroundImageKey = backgroundImages[this.ranchLocation];
-    console.log('Using background key:', backgroundImageKey);
-
-    if (backgroundImageKey && this.textures.exists(backgroundImageKey)) {
-        this.currentBackground = this.add
-            .image(400, 300, backgroundImageKey)
+    if (this.textures.exists(bgKey)) {
+        if (this.background) {
+            this.background.destroy();
+        }
+        this.background = this.add.image(400, 300, bgKey)
             .setOrigin(0.5)
-            .setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
-        console.log('✅ Background set successfully');
+            .setDisplaySize(800, 600);
     } else {
-        console.warn('❌ Background not found:', backgroundImageKey);
-        console.log('Available textures:', Object.keys(this.textures.list));
+        console.error(`Background image not found for key: ${bgKey}`);
+        // Fallback to a default color if image not found
+        this.cameras.main.setBackgroundColor('#2d572c');
     }
   }
 
@@ -189,11 +196,11 @@ export default class GameScene extends BaseScene {
     const canAccessPortal = !this.activeMonster || this.activeMonster.isFrozen;
 
     const menuItems = [
-      { text: "Feed", onClick: () => this.toggleInventory() },
+      { text: "Inventory", onClick: () => this.toggleInventory() },
+      { text: "Health Status", onClick: () => this.toggleStats() },
       { text: "Play", onClick: () => this.activeMonster && !this.activeMonster.isFrozen && this.activeMonster.play() },
       { text: "Sleep", onClick: () => this.activeMonster && !this.activeMonster.isFrozen && this.activeMonster.sleep() },
       { text: "Go to Market", onClick: () => this.goToMarket() },
-      { text: "Use Item", onClick: () => this.useItem() },
       { text: "Journey", onClick: () => startJourney(this, this.activeMonster, this.dropdownMenu, this.monsterStatsComponent, this.player) },
       { text: "View Map", onClick: () => this.viewMap() },
       { text: "Cemetery", onClick: () => this.viewCemetery() },
@@ -215,33 +222,28 @@ export default class GameScene extends BaseScene {
   }
 
   createInventoryWindow() {
-    const windowHeight = this.scale.height;
-    const windowWidth = this.scale.width;
-    
     this.inventoryComponent = new GameInventoryComponent(
         this,
-        550,    // x position
-        50,     // y position
-        220,    // width
-        400,    // height
+        0,
+        0,
+        600,
+        80,
         this.player.inventory,
-        70,     // slot size
-        15,     // padding
-        0x2c3e50,  // background color
-        0x3498db,  // border color
+        60,
+        10,
+        0x2c3e50,
+        0x3498db,
         this.useItem.bind(this),
         this.showItemInfo.bind(this),
         this.hideItemInfo.bind(this)
     );
-
-    // Set initial visibility to false
-    if (this.inventoryComponent) {
-        this.inventoryComponent.setVisible(false);
-    }
   }
 
   toggleInventory() {
-    this.inventoryComponent.toggle();
+    if (this.inventoryComponent) {
+        this.inventoryComponent.toggle();
+        this.hideItemInfo();
+    }
   }
 
   goToMarket() {
@@ -269,14 +271,8 @@ export default class GameScene extends BaseScene {
       this.dialog.destroy();
     }
 
-    this.dialog = new DialogComponent(this, 400, 300, 400, 150, message, 'character');
+    this.dialog = new DialogComponent(this, 400, 300, 400, 150, message, 'trainerDave');
     this.dialog.showDialog(message);
-
-    this.time.delayedCall(3000, () => {
-      if (this.dialog) {
-        this.dialog.hideDialog();
-      }
-    });
   }
 
   shutdown() {
@@ -333,6 +329,12 @@ export default class GameScene extends BaseScene {
     if (this.inventoryComponent) {
       this.inventoryComponent.destroy();
     }
+    if (this.statusEffectsComponent) {
+      this.statusEffectsComponent.destroy();
+    }
+    if (this.playerInfoComponent) {
+      this.playerInfoComponent.destroy();
+    }
   }
 
   onMonsterDeath(monster) {
@@ -353,12 +355,17 @@ export default class GameScene extends BaseScene {
   }
 
   setupMonsterStats() {
+    // Center horizontally and place under status effects
+    const centerX = this.scale.width / 2 - 160;  // Half of component width (320)
+    const topY = 60;  // Below status effects (20 + 30 + 10 padding)
+
     this.monsterStatsComponent = new DisplayStatsComponent(
-      this, 
-      this.activeMonster, 
-      this.player.coins, 
-      16, 
-      56
+        this, 
+        this.activeMonster, 
+        this.player.coins, 
+        centerX,
+        topY,
+        false  // Start hidden
     );
     
     this.activeMonster.setDisplayStatsComponent(this.monsterStatsComponent);
@@ -401,6 +408,98 @@ export default class GameScene extends BaseScene {
     if (this.descriptionText) {
         this.descriptionText.destroy();
         this.descriptionText = null;
+    }
+  }
+
+  toggleStats() {
+    if (this.monsterStatsComponent) {
+        this.monsterStatsComponent.toggle();
+    }
+  }
+
+  setupStatusEffects() {
+    // Center horizontally and place at top
+    const centerX = this.scale.width / 2 - 200;  // Half of component width (400)
+    const topY = 20;  // Small gap from top
+
+    this.statusEffectsComponent = new StatusEffectsComponent(
+        this,
+        this.activeMonster,
+        centerX,
+        topY
+    );
+  }
+
+  showWelcomeDialog() {
+    const welcomeMessage = "Welcome to Monster Ranch! 🎉\n\nTo help you get started, here's a Starter Egg. Use it to summon your first monster companion!\n\nClick 'OK' to receive your gift.";
+    
+    this.dialog = new DialogComponent(
+        this,
+        400,
+        300,
+        400,
+        200,
+        welcomeMessage,
+        'trainerDave'
+    );
+
+    // Add custom OK button
+    const okButton = this.add.text(400, 380, 'OK', {
+        fontSize: '20px',
+        fill: '#ffffff',
+        backgroundColor: '#2ecc71',
+        padding: { x: 20, y: 10 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+        this.giveStarterOffering();
+        this.dialog.hideDialog();
+        okButton.destroy();
+        // Mark welcome as seen
+        this.player.hasSeenWelcome = true;
+    });
+
+    this.dialog.showDialog();
+  }
+
+  async giveStarterOffering() {
+    try {
+        // Get the starter offering from Offerings model
+        const starterOffering = Offerings.STARTER_EGG;
+
+        // Add to player's inventory
+        this.player.addItemToInventory(starterOffering);
+        
+        // Update inventory display
+        if (this.inventoryComponent) {
+            this.inventoryComponent.updateInventory(this.player.inventory);
+        }
+
+        // Show tutorial message about using the offering
+        const tutorialMessage = "Great! You received a Starter Egg!\n\n1. Click 'Monster Portal' in the dropdown menu\n2. Open your inventory\n3. Use the Starter Egg to summon your companion!";
+        
+        this.dialog = new DialogComponent(
+            this,
+            400,
+            300,
+            400,
+            200,
+            tutorialMessage,
+            'trainerDave'
+        );
+        this.dialog.showDialog();
+
+        // Auto-hide tutorial after 8 seconds
+        this.time.delayedCall(8000, () => {
+            if (this.dialog) {
+                this.dialog.hideDialog();
+            }
+        });
+
+    } catch (error) {
+        console.error('Error giving starter offering:', error);
+        this.showErrorDialog('There was an error giving your starter offering. Please try reloading the game.');
     }
   }
 }

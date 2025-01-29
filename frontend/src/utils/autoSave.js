@@ -66,13 +66,13 @@ class AutoSave {
 
       return {
         id: this.player._id,
-    name: this.player.name,
-    ranchName: this.player.ranchName,
-    coins: this.player.coins,
-    inventory: this.player.inventory,
-    monsters: this.player.monsters.map(monster => monster._id), // Assuming monsters is an array of Monster instances
-    activeMonster: this.player.activeMonster ? this.player.activeMonster : null,
-    ranchLocation: this.player.ranchLocation,
+        name: this.player.name,
+        ranchName: this.player.ranchName,
+        coins: this.player.coins,
+        inventory: this.player.inventory,
+        monsters: this.player.monsters.map(monster => monster._id), // Just the IDs
+        activeMonster: this.player.activeMonster ? this.player.activeMonster._id : null, // Just the ID
+        ranchLocation: this.player.ranchLocation,
       };
     }
   }

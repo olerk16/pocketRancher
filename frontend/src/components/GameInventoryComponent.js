@@ -8,10 +8,10 @@ export class GameInventoryComponent extends InventoryComponent {
         width,
         height,
         items,
-        slotSize = 70,
-        padding = 15,
-        backgroundColor = 0x2c3e50,  // Darker blue-gray background
-        borderColor = 0x3498db,      // Light blue border
+        slotSize = 60,  // Smaller slots for horizontal bar
+        padding = 10,
+        backgroundColor = 0x2c3e50,
+        borderColor = 0x3498db,
         onItemClick = null,
         onItemHover = null,
         onItemHoverOut = null
@@ -22,56 +22,50 @@ export class GameInventoryComponent extends InventoryComponent {
         this.onItemHoverOut = onItemHoverOut;
         this.itemsPerRow = Math.floor((width - padding * 2) / (slotSize + padding));
         this.createInventoryWindow();
+        this.setVisible(false); // Start hidden
     }
 
     createInventoryWindow() {
-        this.container = this.scene.add.container(this.x, this.y);
+        // Calculate position for bottom of screen
+        const gameHeight = this.scene.scale.height;
+        const gameWidth = this.scene.scale.width;
+        const inventoryHeight = this.slotSize + (this.padding * 2);
+        
+        // Position at bottom center
+        this.container = this.scene.add.container(
+            (gameWidth - this.width) / 2,  // Center horizontally
+            gameHeight - inventoryHeight - 50  // 50px from bottom
+        );
 
-        // Create main background with rounded corners
+        // Create main background with semi-transparency
         const background = this.scene.add.graphics();
-        this.updateBackground(background);
+        background.fillStyle(this.backgroundColor, 0.9);  // Slightly transparent
+        background.lineStyle(4, this.borderColor, 1);
+        background.fillRoundedRect(0, 0, this.width, inventoryHeight, 12);
+        background.strokeRoundedRect(0, 0, this.width, inventoryHeight, 12);
         this.container.add(background);
-
-        // Add title
-        const title = this.scene.add.text(this.width / 2, 20, 'Inventory', {
-            fontSize: '20px',
-            fontFamily: 'Arial',
-            color: '#ecf0f1',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        this.container.add(title);
 
         // Create grid of slots
         this.createSlots();
+
+        // Set initial visibility
+        this.container.setVisible(this.visible);
     }
 
     createSlots() {
         this.slots = [];
         const startX = this.padding;
-        const startY = this.padding + 40; // Add space for title
+        const startY = this.padding;
 
-        // Create empty slots grid
-        const totalSlots = 12; // Fixed number of slots
+        // Create fixed number of slots in a single row
+        const totalSlots = 8;
         for (let i = 0; i < totalSlots; i++) {
-            const row = Math.floor(i / this.itemsPerRow);
-            const col = i % this.itemsPerRow;
-            const x = startX + col * (this.slotSize + this.padding);
-            const y = startY + row * (this.slotSize + this.padding);
+            const x = startX + i * (this.slotSize + this.padding);
+            const y = startY;
 
             const slot = this.createSlot(x, y, i);
             this.slots.push(slot);
             this.container.add(slot);
-        }
-
-        // Adjust container height based on number of rows
-        const rows = Math.ceil(totalSlots / this.itemsPerRow);
-        const newHeight = (rows * (this.slotSize + this.padding)) + this.padding + 40;
-        this.height = Math.max(this.height, newHeight);
-        
-        // Update background
-        const bg = this.container.list[0];
-        if (bg) {
-            this.updateBackground(bg);
         }
     }
 
@@ -79,7 +73,7 @@ export class GameInventoryComponent extends InventoryComponent {
         const slot = this.scene.add.container(x, y);
         const item = this.items[index];
 
-        // Create slot background with gradient effect
+        // Create slot background
         const background = this.scene.add.graphics();
         background.fillStyle(0x34495e, 1);
         background.lineStyle(2, 0x3498db, 1);
@@ -96,22 +90,7 @@ export class GameInventoryComponent extends InventoryComponent {
             );
             image.setDisplaySize(this.slotSize * 0.7, this.slotSize * 0.7);
 
-            // Add item name with better styling
-            const nameText = this.scene.add.text(
-                this.slotSize / 2,
-                -5,
-                item.name,
-                {
-                    fontSize: '12px',
-                    fontFamily: 'Arial',
-                    color: '#ecf0f1',
-                    backgroundColor: '#2c3e50dd',
-                    padding: { x: 4, y: 2 },
-                    align: 'center'
-                }
-            ).setOrigin(0.5, 0);
-
-            // Setup enhanced interactivity
+            // Setup interactivity
             image.setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => this.onItemClick && this.onItemClick(item))
                 .on('pointerover', () => {
@@ -131,7 +110,7 @@ export class GameInventoryComponent extends InventoryComponent {
                     this.onItemHoverOut && this.onItemHoverOut(item);
                 });
 
-            slot.add([image, nameText]);
+            slot.add(image);
         }
 
         return slot;

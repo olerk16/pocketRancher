@@ -1,6 +1,7 @@
 import BaseScene from './BaseScene';
 import { createImageButton } from "../utils/uiUtils.js";
 import Monster from "../models/Monster.js";
+import DropdownMenu from '../components/DropDownMenu.js';
 
 export default class MapScene extends BaseScene {
     constructor() {
@@ -17,19 +18,16 @@ export default class MapScene extends BaseScene {
     }
 
     setupSceneContent() {
-        this.createBattleButton();
+        this.createDropdownMenu();
     }
 
-    createBattleButton() {
-        createImageButton(
-            this,
-            100,
-            100,
-            "battleButton",
-            () => this.startBattleScene("level-1"),
-            50,
-            50
-        );
+    createDropdownMenu() {
+        const menuItems = [
+            { text: "Start Battle", onClick: () => this.startBattleScene("level-1") },
+            { text: "Back to Ranch", onClick: () => this.handleSceneTransition('GameScene') }
+        ];
+
+        this.dropdownMenu = new DropdownMenu(this, menuItems);
     }
 
     startBattleScene(level) {

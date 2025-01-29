@@ -199,23 +199,20 @@ class Monster {
    * Decreases the monster's lifespan over time.
    */
   decreaseLifeSpan() {
-    if (this.isFrozen) return;
+    if (this.isFrozen || this.lifeSpan <= 0) return;
 
-    // Base decay amount
-    let decayAmount = 0.1;
+    this.lifeSpan = Math.max(0, this.lifeSpan - 0.1);
+    
+    try {
+        if (this.displayStatsComponent) {
+            this.updateDisplay();
+        }
 
-    // Double decay if hunger is at 0 or energy is very low
-    if (this.hunger <= 0 || this.energy < 20) {
-      decayAmount *= 2;
-    }
-
-    // Keep lifespan between 0 and 100
-    this.lifeSpan = Math.max(0, Math.min(100, this.lifeSpan - decayAmount));
-
-    if (this.lifeSpan <= 0) {
-      this.handleDeath();
-    } else {
-      this.updateDisplay();
+        if (this.lifeSpan <= 0) {
+            this.handleDeath();
+        }
+    } catch (error) {
+        console.warn('Error in decreaseLifeSpan:', error);
     }
   }
 
@@ -334,22 +331,23 @@ class Monster {
    * Updates the display components associated with the monster.
    */
   updateDisplay() {
-    // Only update display if component exists and we're not frozen
-    if (this.displayStatsComponent && !this.isFrozen) {
-      this.displayStatsComponent.updateDisplay();
+    if (!this.displayStatsComponent || !this.scene) return;
+    
+    try {
+        this.displayStatsComponent.updateDisplay();
+    } catch (error) {
+        console.warn('Error updating monster display:', error);
     }
   }
 
   /**
    * Associates a DisplayStatsComponent with the monster.
-   * @param {DisplayStatsComponent} displayStatsComponent - The component to associate.
+   * @param {DisplayStatsComponent} component - The component to associate.
    */
-  setDisplayStatsComponent(displayStatsComponent) {
-    this.displayStatsComponent = displayStatsComponent;
-    // Only update display if not frozen
-    if (!this.isFrozen) {
-      this.updateDisplay();
-    }
+  setDisplayStatsComponent(component) {
+    if (!component) return;
+    this.displayStatsComponent = component;
+    this.updateDisplay(); // Initial update
   }
 
   /**

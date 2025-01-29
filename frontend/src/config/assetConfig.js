@@ -1,13 +1,15 @@
 export const AssetConfig = {
     backgrounds: {
-        bazaar: '/assets/images/backGrounds/bazaar.webp',
-        freezer: '/assets/images/backGrounds/freezer.webp',
-        portal: '/assets/images/backGrounds/portalBackground.webp',
-        cemetery: '/assets/images/backGrounds/cemetery.webp',
-        map: '/assets/images/backGrounds/map.webp',
-        grassLandRanch: '/assets/images/backGrounds/grassLandRanch.webp',
-        desertRanch: '/assets/images/backGrounds/desertRanch.webp',
-        mountainRanch: '/assets/images/backGrounds/mountainRanch.webp'
+        bazaar: '/assets/images/Backgrounds/bazaar.webp',
+        freezer: '/assets/images/Backgrounds/freezer.webp',
+        portal: '/assets/images/Backgrounds/portalBackground.webp',
+        cemetery: '/assets/images/Backgrounds/cemetery.webp',
+        map: '/assets/images/Backgrounds/map.webp',
+        grassLandRanch: '/assets/images/Backgrounds/grasslandRanch.webp',
+        desertRanch: '/assets/images/Backgrounds/desertRanch.webp',
+        mountainRanch: '/assets/images/Backgrounds/mountainRanch.webp', 
+        shadowRanch: '/assets/images/Backgrounds/shadowRanch.webp'
+
     },
     items: {
         potato: 'assets/images/Items/potato.png',
@@ -22,7 +24,7 @@ export const AssetConfig = {
         dragonScale: '/assets/images/Offerings/dragonScale.png',
         mysticGem: '/assets/images/Offerings/mysticGem.png',
         ancientRelic: '/assets/images/Offerings/ancientRelic.png',
-        magicBerries: '/assets/images/Offerings/magicBerries.png'
+        starterEgg: '/assets/images/Offerings/starterEgg.png'
     },
     icons: {
         battle: 'assets/images/icons/battleButton.png',

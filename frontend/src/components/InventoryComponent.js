@@ -29,7 +29,7 @@ export class InventoryComponent {
         this.onSlotHoverEnd = onSlotHoverEnd;
         this.container = null;
         this.slots = [];
-        this.visible = true;
+        this._visible = false;
 
         // Calculate number of slots that can fit
         this.slotsPerRow = Math.floor((width - padding * 2) / (slotSize + padding));
@@ -129,15 +129,23 @@ export class InventoryComponent {
         }
     }
 
-    setVisible(visible) {
-        this.visible = visible;
+    get visible() {
+        return this._visible;
+    }
+
+    set visible(value) {
+        this._visible = value;
         if (this.container) {
-            this.container.setVisible(visible);
+            this.container.setVisible(value);
         }
     }
 
     toggle() {
-        this.setVisible(!this.visible);
+        this.visible = !this.visible;
+    }
+
+    setVisible(value) {
+        this.visible = value;
     }
 
     destroy() {

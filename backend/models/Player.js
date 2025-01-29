@@ -18,7 +18,8 @@ const playerSchema = new Schema({
     deathDate: String,
     causeOfDeath: String,
     imageURL: String
-  }]
+  }],
+  hasSeenWelcome: { type: Boolean, default: false },
 });
 
 const Player = mongoose.model('Player', playerSchema);

@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import { createButton } from '../utils/uiUtils.js';
+import DropdownMenu from '../components/DropDownMenu.js';
 
 export default class BaseScene extends Phaser.Scene {
     constructor(key) {
         super({ key });
         this.sceneKey = key;
+        this.dropdownMenu = null;
     }
 
     // Common preload logic
@@ -47,20 +48,22 @@ export default class BaseScene extends Phaser.Scene {
         }
     }
 
-    // Override in child scenes to set up scene-specific UI
+    // Replace setupUI with createDropdownMenu
     setupUI() {
-        this.createBackButton();
+        this.createDropdownMenu();
+    }
+
+    // New method for dropdown menu
+    createDropdownMenu() {
+        const menuItems = [
+            { text: "Back to Ranch", onClick: () => this.handleSceneTransition('GameScene') }
+        ];
+
+        this.dropdownMenu = new DropdownMenu(this, menuItems);
     }
 
     // Override in child scenes to set up scene-specific content
     setupSceneContent(data) {}
-
-    // Common back button creation
-    createBackButton(targetScene = 'GameScene') {
-        createButton(this, 700, 50, "Back", () => {
-            this.handleSceneTransition(targetScene);
-        });
-    }
 
     // Handle scene transitions with player data
     handleSceneTransition(targetScene, extraData = {}) {
@@ -74,6 +77,9 @@ export default class BaseScene extends Phaser.Scene {
     // Clean up resources
     shutdown() {
         this.cleanup();
+        if (this.dropdownMenu) {
+            this.dropdownMenu.removeMenu();
+        }
         super.shutdown();
     }
 

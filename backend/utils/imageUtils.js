@@ -9,7 +9,7 @@ const removeWhiteBackgroundFromBuffer = async (inputBuffer) => {
         const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
         const { width, height, channels } = info;
         const pixelCount = width * height;
-        const threshold = 242; // Adjust threshold for white
+        const threshold = 245; // Adjust threshold for white
         const outputBuffer = Buffer.alloc(pixelCount * 4);
 
         for (let i = 0; i < pixelCount; i++) {

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { createButton } from "../utils/uiUtils.js";
+import DropdownMenu from '../components/DropDownMenu.js';
 
 export default class MonsterCemeteryScene extends Phaser.Scene {
     constructor() {
@@ -41,9 +42,7 @@ export default class MonsterCemeteryScene extends Phaser.Scene {
         // Display the list of deceased monsters
         this.displayDeceasedMonsters();
     
-        createButton(this, 700, 50, "Back", () => {
-          this.scene.start("GameScene", { player: this.player });
-        });
+        this.createDropdownMenu();
       }
     
       displayDeceasedMonsters() {
@@ -90,5 +89,21 @@ export default class MonsterCemeteryScene extends Phaser.Scene {
             tombstone.add(tombstoneText);
           });
         }
+      }
+
+      createDropdownMenu() {
+        const menuItems = [
+            { text: "Back to Ranch", onClick: () => this.handleSceneTransition('GameScene') }
+        ];
+
+        this.dropdownMenu = new DropdownMenu(this, menuItems);
+      }
+
+      handleSceneTransition(targetScene, extraData = {}) {
+        const sceneData = {
+            ...(this.player && { player: this.player.toJSON() }),
+            ...extraData
+        };
+        this.scene.start(targetScene, sceneData);
       }
     }

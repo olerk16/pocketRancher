@@ -1,12 +1,12 @@
 import BaseScene from './BaseScene';
 import { createButton } from "../utils/uiUtils.js";
 import { MonsterInventoryComponent } from '../components/MonsterInventoryComponent.js';
+import DropdownMenu from '../components/DropDownMenu.js';
 
 export default class FreezerScene extends BaseScene {
     constructor() {
         super('FreezerScene');
         this.selectedMonsters = [];
-        this.freezeCombineButton = null;
         this.currentModeText = null;
         this.modes = Object.freeze({
             UNFREEZE: "UNFREEZE",
@@ -27,27 +27,36 @@ export default class FreezerScene extends BaseScene {
         this.createTitle();
         this.createInventoryComponent();
         this.createDescriptionText();
-        this.createModeControls();
+        this.createDropdownMenu();
     }
 
     createTitle() {
         this.add
-            .text(400, 50, "Monster Freezer", { fontSize: "32px", fill: "#000" })
+            .text(400, 50, "Monster Freezer", { 
+                fontSize: "32px", 
+                fill: "#00ffff",
+                fontFamily: "monospace",
+                backgroundColor: "#000000aa"
+            })
             .setOrigin(0.5);
     }
 
     createInventoryComponent() {
+        // Center the inventory horizontally
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height - 150;
+
         this.inventoryComponent = new MonsterInventoryComponent(
             this,
+            centerX - 200,
+            centerY,
+            420,
             100,
-            100,
-            620,
-            200,  // Taller for monster display
             this.player.getFrozenMonsters(),
-            100,
-            20,
-            0x222222,
-            0x444444,
+            70,
+            10,
+            0x000000,
+            0x00ffff,
             this.OnMonsterSlotClicked.bind(this),
             this.showInfo.bind(this),
             this.hideInfo.bind(this)
@@ -66,31 +75,28 @@ export default class FreezerScene extends BaseScene {
             .setVisible(false);
     }
 
-    createModeControls() {
-        this.currentModeText = this.add
-            .text(400, 500, `${this.currentMode}`, { fontSize: "32px", fill: "#000" })
-            .setOrigin(0.5);
+    createDropdownMenu() {
+        const menuItems = [
+            { text: "Toggle Stats", onClick: () => this.toggleStats() },
+            { text: "Freeze Monster", onClick: () => this.freezeMonster() },
+            { text: "Change Mode", onClick: () => this.changeMode() },
+            { text: "Back to Ranch", onClick: () => this.handleSceneTransition('GameScene') }
+        ];
 
-        createButton(this, 400, 400, "Freeze", () => {
-            this.freezeMonster();
-        }).setOrigin(.5);
+        this.dropdownMenu = new DropdownMenu(this, menuItems);
+    }
 
-        this.freezeCombineButton = createButton(
-            this,
-            400,
-            350,
-            "Change to unfreeze mode",
-            () => this.changeMode()
-        ).setOrigin(.5);
+    toggleStats() {
+        if (this.monsterStatsComponent) {
+            this.monsterStatsComponent.toggle();
+        }
     }
 
     changeMode() {
         if (this.currentMode === this.modes.UNFREEZE) {
             this.currentMode = this.modes.COMBINE;
-            this.freezeCombineButton.setText("Change to combine mode");
         } else {
             this.currentMode = this.modes.UNFREEZE;
-            this.freezeCombineButton.setText("Change to unfreeze mode");
         }
         this.selectedMonsters = [];
         this.updateInventory();
@@ -203,5 +209,19 @@ export default class FreezerScene extends BaseScene {
         if (this.descriptionText) {
             this.descriptionText.destroy();
         }
+    }
+
+    preload() {
+        super.preload();
+        
+        // Load monster images for frozen monsters
+        const frozenMonsters = this.player?.getFrozenMonsters() || [];
+        frozenMonsters.forEach(monster => {
+            const monsterKey = `monster_${monster._id}`;
+            if (!this.textures.exists(monsterKey)) {
+                console.log('Loading frozen monster image:', monster.imageURL);
+                this.load.image(monsterKey, monster.imageURL);
+            }
+        });
     }
 }

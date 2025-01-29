@@ -1,4 +1,14 @@
 const Offerings = {
+    STARTER_EGG: {
+        name: "Starter Egg",
+        spriteKey: "starterEgg",
+        type: "offering",
+        price: 0,
+        description: "A mysterious egg crackling with energy",
+        prompt: "Create an electrifying monster with storm-like features, crackling with energy. It should have lightning patterns and storm cloud elements incorporated into its design. The monster should be centered and isolated on a pure white background.",
+        rarity: "common",
+        monsterTypes: ["electric", "dragon"]
+    },
     STORM_EGG: {
         name: "Storm Egg",
         spriteKey: "stormEgg",

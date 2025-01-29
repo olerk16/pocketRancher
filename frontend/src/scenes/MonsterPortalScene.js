@@ -2,14 +2,21 @@ import BaseScene from './BaseScene';
 import { createButton } from '../utils/uiUtils.js';
 import Monster from '../models/Monster.js';
 import Player from '../models/Player.js';
-import { OfferingSelection } from '../components/OfferingSelection.js';
 import { MonsterSummoner } from '../services/MonsterSummoner.js';
+import { GameInventoryComponent } from '../components/GameInventoryComponent.js';
+import DropdownMenu from '../components/DropDownMenu.js';
+import DialogComponent from '../components/DialogComponent.js';
+import { StarterMonsterService } from '../services/StarterMonsterService.js';
 
 export default class MonsterPortalScene extends BaseScene {
   constructor() {
     super('MonsterPortalScene');
-    this.offeringSelection = null;
     this.monsterSummoner = null;
+    this.descriptionText = null;
+    this.inventoryComponent = null;
+    this.dropdownMenu = null;
+    this.dialog = null;
+    this.starterMonsterService = null;
   }
 
   getBackgroundKey() {
@@ -27,9 +34,11 @@ export default class MonsterPortalScene extends BaseScene {
 
   setupSceneContent() {
     this.createTitle();
-    this.setupOfferingSelection();
-    this.createSummonButton();
     this.monsterSummoner = new MonsterSummoner(this);
+    this.starterMonsterService = new StarterMonsterService(this);
+    this.createInventoryWindow();
+    this.createDropdownMenu();
+    this.showInstructions();
   }
 
   createTitle() {
@@ -39,138 +48,121 @@ export default class MonsterPortalScene extends BaseScene {
     }).setOrigin(0.5);
   }
 
-  setupOfferingSelection() {
-    if (this.player && this.player.hasOfferings()) {
-        const offerings = this.player.getOfferings();
-        if (offerings.length > 0) {
-            this.offeringSelection = new OfferingSelection(
-                this, 
-                offerings,
-                this.handleOfferingSelected.bind(this)
-            );
-        }
+  createDropdownMenu() {
+    const menuItems = [
+      { text: "Basic Summon", onClick: () => this.summonMonster() },
+      { text: "Inventory", onClick: () => this.toggleInventory() },
+      { text: "Back to Ranch", onClick: () => this.handleSceneTransition('GameScene') }
+    ];
+
+    this.dropdownMenu = new DropdownMenu(this, menuItems);
+  }
+
+  createInventoryWindow() {
+    this.inventoryComponent = new GameInventoryComponent(
+        this,
+        0,
+        0,
+        600,    // width for 8 slots
+        80,     // height for single row
+        this.player.inventory,
+        60,     // slot size
+        10,     // padding
+        0x2c3e50,  // background color
+        0x3498db,  // border color
+        this.useOffering.bind(this),
+        this.showItemInfo.bind(this),
+        this.hideItemInfo.bind(this)
+    );
+    this.inventoryComponent.setVisible(false);
+  }
+
+  async useOffering(offering) {
+    try {
+      if (offering.name === "Starter Egg") {
+        await this.starterMonsterService.summonStarterMonster();
+      } else {
+        await this.monsterSummoner.summonMonster(offering);
+      }
+    } catch (error) {
+      console.error('Error using offering:', error);
     }
   }
 
-  handleOfferingSelected(offering) {
-    console.log('Selected offering:', offering); // Debug log
-    if (offering) {
-        this.player.removeOffering(offering);
-        this.summonMonster(offering);
+  showItemInfo(item) {
+    if (this.descriptionText) {
+      this.descriptionText.destroy();
+    }
+
+    this.descriptionText = this.add.text(10, 10, item.description, {
+      fontSize: '16px',
+      fill: '#ffffff',
+      backgroundColor: '#2c3e50',
+      padding: { x: 10, y: 5 },
+      wordWrap: { width: 300, useAdvancedWrap: true }
+    });
+  }
+
+  hideItemInfo() {
+    if (this.descriptionText) {
+      this.descriptionText.destroy();
+      this.descriptionText = null;
     }
   }
 
-  createSummonButton() {
-    createButton(this, 400, 300, 'Summon Monster', () => this.summonMonster());
+  toggleInventory() {
+    if (this.inventoryComponent) {
+      this.inventoryComponent.toggle();
+      this.hideItemInfo();
+    }
   }
 
   async summonMonster(offering = null) {
-    const loadingText = this.add.text(400, 300, 'Summoning...', { 
-        fontSize: '24px', 
-        fill: '#FFF' 
-    }).setOrigin(0.5);
-  
     try {
-        // Create request body with proper offering data
-        const requestBody = {
-            playerName: this.player.name,
-            offering: offering ? offering.name : null,
-            offeringDetails: offering ? {
-                prompt: offering.prompt,
-                rarity: offering.rarity,
-                monsterTypes: offering.monsterTypes
-            } : null
-        };
-
-        console.log('Sending request with body:', requestBody);
-
-        const response = await fetch('http://localhost:5000/api/monsters/generate-monster', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const monsterData = await response.json();
-        console.log('Received monster data:', monsterData);
-
-        // Remove loading text
-        loadingText.destroy();
-
-        // Generate a unique texture key for this monster
-        const textureKey = `monster_${monsterData.uniqueKey}`;
-
-        // Clear any existing texture with this key
-        if (this.textures.exists(textureKey)) {
-            this.textures.remove(textureKey);
-        }
-
-        // Load the monster image with full URL
-        const imageUrl = `http://localhost:5000/${monsterData.imageUrl}`;
-        this.load.image(textureKey, imageUrl);
-        
-        // Wait for the image to load
-        this.load.once('complete', () => {
-            // Display the monster image
-            const monsterImage = this.add.image(400, 300, textureKey)
-                .setOrigin(0.5)
-                .setScale(0.4);
-
-            // Create the monster object with proper structure
-            const newMonster = {
-                name: monsterData.name,
-                type: monsterData.type,
-                favoriteFood: monsterData.favoriteFood,
-                imageURL: monsterData.imageUrl, // Store the relative path
-                initialStats: monsterData.stats,
-                currentStats: monsterData.stats,
-                _id: monsterData.uniqueKey,
-                sprite: null,  // Will be created in GameScene
-                types: monsterData.types // Include monster types
-            };
-
-            // Add "Keep Monster" button
-            createButton(this, 400, 450, 'Keep Monster', () => {
-                if (this.player) {
-                    // Create a proper Monster instance
-                    const monster = Monster.fromData(this, newMonster);
-                    
-                    // Add to player's monsters array
-                    this.player.monsters.push(monster);
-                    
-                    // Set as active monster if none exists
-                    if (!this.player.activeMonster) {
-                        this.player.activeMonster = monster;
-                    }
-
-                    console.log('Added new monster to player:', monster);
-                    
-                    // Transition to GameScene with updated player data
-                    this.scene.start('GameScene', { 
-                        player: this.player.toJSON()
-                    });
-                } else {
-                    console.error('No player data available');
-                }
-            });
-        });
-
-        this.load.start();
-
+      await this.monsterSummoner.summonMonster(offering);
     } catch (error) {
-        console.error('Error summoning monster:', error);
-        loadingText.setText('Failed to summon monster. Try again?');
-        
-        createButton(this, 400, 350, 'Retry', () => {
-            loadingText.destroy();
-            this.summonMonster();
-        });
+      console.error('Error during monster summoning:', error);
     }
+  }
+
+  showInstructions() {
+    if (this.dialog) {
+      this.dialog.destroy();
+    }
+
+    this.dialog = new DialogComponent(
+      this,
+      400,
+      300,
+      400,
+      150,
+      'Use offerings from your inventory to summon monsters',
+      'trainerDave'
+    );
+    this.dialog.showDialog();
+
+    // Hide dialog after 5 seconds
+    this.time.delayedCall(5000, () => {
+      if (this.dialog) {
+        this.dialog.hideDialog();
+      }
+    });
+  }
+
+  cleanup() {
+    if (this.inventoryComponent) {
+      this.inventoryComponent.destroy();
+    }
+    if (this.descriptionText) {
+      this.descriptionText.destroy();
+    }
+    if (this.dropdownMenu) {
+      this.dropdownMenu.removeMenu();
+    }
+    if (this.dialog) {
+      this.dialog.destroy();
+    }
+    super.cleanup();
   }
 
   update(time, delta) {

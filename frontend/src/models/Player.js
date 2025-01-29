@@ -17,6 +17,7 @@ export default class Player {
     this.inventory = data.inventory || [];
     this.ranchLocation = data.ranchLocation || 'grassLand';
     this.deceasedMonsters = data.deceasedMonsters || [];
+    this.hasSeenWelcome = data.hasSeenWelcome || false;
 
     // Initialize monsters from data, passing the scene
     this.monsters = (data.monsters || []).map(monsterData => Monster.fromData(scene, monsterData));
@@ -36,7 +37,10 @@ export default class Player {
     }
 
     console.log('Creating player from data:', data);
-    const player = new Player(scene, data);
+    const player = new Player(scene, {
+      ...data,
+      hasSeenWelcome: data.hasSeenWelcome,
+    });
     
     // Load monsters
     if (data.monsters) {
@@ -73,7 +77,8 @@ export default class Player {
       monsters: this.monsters.map(monster => monster.toJSON()),
       frozenMonsters: this.frozenMonsters.map(monster => monster.toJSON()),
       activeMonster: this.activeMonster ? this.activeMonster.toJSON() : null,
-      deceasedMonsters: this.deceasedMonsters
+      deceasedMonsters: this.deceasedMonsters,
+      hasSeenWelcome: this.hasSeenWelcome,
     };
   }
 
