@@ -72,6 +72,14 @@ export default class DisplayStatsComponent {
     });
     this.container.add(this.statusEffects);
 
+    // Add disease text
+    this.diseaseText = this.scene.add.text(10, startY + this.padding * 6, '', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      fill: '#ff0000'  // Red color for diseases
+    });
+    this.container.add(this.diseaseText);
+
     // Set initial visibility based on alwaysShow or default hidden
     this.container.setVisible(this.alwaysShow ? true : this.visible);
   }
@@ -154,6 +162,23 @@ export default class DisplayStatsComponent {
       this.updateStatBar(this.energyBar, this.monster.energy, 100);
       this.updateStatBar(this.hygieneBar, this.monster.hygiene, 100);
       this.updateStatBar(this.lifeSpanBar, this.monster.lifeSpan, 100);
+
+      // Update disease display
+      if (this.monster.activeDisease) {
+        const timeLeft = Math.max(0, 
+          (this.monster.activeDisease.duration - 
+          (Date.now() - this.monster.activeDisease.startTime)) / 1000
+        );
+        
+        this.diseaseText.setText(
+          `Disease: ${this.monster.activeDisease.name}\n` +
+          `Time Left: ${Math.round(timeLeft)}s`
+        );
+        this.diseaseText.setVisible(true);
+      } else {
+        this.diseaseText.setVisible(false);
+      }
+
     } catch (error) {
       console.warn('Error updating display stats:', error);
     }

@@ -51,6 +51,9 @@ class Monster {
     this.sprite = null;
     this.displayStatsComponent = null;
 
+    // Add activeDisease property
+    this.activeDisease = data.activeDisease || null;
+
     // Initialize the monster (e.g., create the sprite)
     this.initializeMonster();
 
@@ -578,6 +581,29 @@ class Monster {
     }
 
     return this.sprite;
+  }
+
+  // Add method to set active disease
+  setActiveDisease(disease) {
+    this.activeDisease = {
+      name: disease.name,
+      effects: disease.effects,
+      duration: disease.duration,
+      startTime: Date.now()
+    };
+    
+    // Update display if it exists
+    if (this.displayStatsComponent) {
+      this.displayStatsComponent.updateDisplay();
+    }
+  }
+
+  // Add method to clear disease
+  clearDisease() {
+    this.activeDisease = null;
+    if (this.displayStatsComponent) {
+      this.displayStatsComponent.updateDisplay();
+    }
   }
 }
 
