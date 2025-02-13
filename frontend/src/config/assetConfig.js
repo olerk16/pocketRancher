@@ -8,16 +8,16 @@ export const AssetConfig = {
         grassLandRanch: '/assets/images/Backgrounds/grasslandRanch.webp',
         desertRanch: '/assets/images/Backgrounds/desertRanch.webp',
         mountainRanch: '/assets/images/Backgrounds/mountainRanch.webp', 
-        shadowRanch: '/assets/images/Backgrounds/shadowRanch.webp'
-
+        shadowRanch: '/assets/images/Backgrounds/shadowRanch.webp',
+        portalBackground: '/assets/images/Backgrounds/portalBackground.webp'
     },
     items: {
-        potato: 'assets/images/Items/potato.png',
-        steak: 'assets/images/Items/steak.png',
-        toy: 'assets/images/Items/toy.png',
-        flowers: 'assets/images/Items/flowers.png',
-        healthPotion: 'assets/images/Items/healthPotion.png',
-        magicBerries: 'assets/images/Items/magicBerries.png'
+        potato: '/assets/images/Items/potato.png',
+        steak: '/assets/images/Items/steak.png',
+        toy: '/assets/images/Items/toy.png',
+        flowers: '/assets/images/Items/flowers.png',
+        healthPotion: '/assets/images/Items/healthPotion.png',
+        magicBerries: '/assets/images/Items/magicBerries.png'
     },
     offerings: {
         stormEgg: '/assets/images/Offerings/stormEgg.png',
@@ -27,11 +27,11 @@ export const AssetConfig = {
         starterEgg: '/assets/images/Offerings/starterEgg.png'
     },
     icons: {
-        battle: 'assets/images/icons/battleButton.png',
-        exit: 'assets/images/icons/exitButton.webp'
+        battle: '/assets/images/Icons/battleButton.png',
+        exit: '/assets/images/Icons/exitButton.png'
     },
     characters: {
-        trainerDave: 'assets/images/Characters/trainerDave.png'
+        trainerDave: '/assets/images/Characters/trainerDave.png'
     }
 };
 
